@@ -64,7 +64,7 @@ const PricingCard = (props: Package) => {
         <div className="text-center">
           {highlight && (
             <span className="inline-flex absolute px-3 py-1 text-xs -top-3 left-1/2 -translate-x-1/2 font-medium rounded-full bg-gradient-to-r from-red-500 to-orange-500 text-white ">
-              Popular
+              Populaire
             </span>
           )}
 
@@ -72,10 +72,10 @@ const PricingCard = (props: Package) => {
             {title}
           </h4>
           <p className="mt-3 text-4xl font-bold text-black dark:text-white md:text-4xl">
-            <span className="text-sm font-normal">$</span>
             {monthly}
+            <span className="text-sm font-normal">€</span>
             <span className="text-sm font-normal text-slate-600 dark:text-slate-400">
-              /month
+              /mois
             </span>
           </p>
         </div>
@@ -96,7 +96,7 @@ const PricingCard = (props: Package) => {
             block
             type={highlight ? 'primary' : 'outline'}
           >
-            {'Get Started'}
+            {'Contactez nous'}
           </LandingButton>
         </div>
       </div>

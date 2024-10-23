@@ -1,0 +1,26 @@
+{
+  "recommendations": [
+    "github.vscode-pull-request-github",
+    "mhutchie.git-graph",
+    "donjayamanne.githistory",
+    "waderyan.gitblame",
+    "vivaxy.vscode-conventional-commits",
+    "eliostruyf.vscode-front-matter-beta",
+    "nrwl.angular-console",
+    "github.vscode-github-actions",
+    "gruntfuggly.todo-tree",
+    "oderwat.indent-rainbow",
+    "ms-vscode.vscode-typescript-next",
+    "lokalise.i18n-ally",
+    "dbaeumer.vscode-eslint",
+    "marblism.marblism",
+    "esbenp.prettier-vscode",
+    "zenstack.zenstack",
+    "christian-kohler.path-intellisense",
+    "usernamehw.errorlens",
+    "pkief.material-icon-theme",
+    "nguyenoss.html-to-css-autocompletion",
+    "naumovs.color-highlight",
+    "alfredbirk.tailwind-documentation"
+  ]
+}

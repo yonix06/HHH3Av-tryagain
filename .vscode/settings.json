@@ -1,9 +1,9 @@
 {
-  "workbench.colorTheme": "GitHub Dark Dimmed",
+  "workbench.colorTheme": "Visual Studio Dark",
   "workbench.startupEditor": "none",
   "git.confirmSync": false,
   "gitlens.showWelcomeOnInstall": false,
-  "files.autoSave": "off",
+  "files.autoSave": "afterDelay",
   "git.autofetch": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
@@ -20,5 +20,37 @@
     "javascriptreact",
     "typescript",
     "typescriptreact"
+  ],
+  "gitlens.codeLens.enabled": false,
+  "gitlens.statusBar.enabled": false,
+  "gitlens.hovers.enabled": false,
+  "gitlens.currentLine.enabled": false,
+  "gitlens.hovers.currentLine.over": "line",
+  "keyboard.layout": "French",
+  "conventionalCommits.autoCommit": true,
+  "git.branchProtection": ["main"],
+  "git.branchRandomName.dictionary": ["colors", "animals"],
+  "git.enableSmartCommit": true,
+  "javascript.experimental.updateImportsOnPaste": true,
+  "microsoft-sovereign-cloud.environment": "custom",
+  "npm.autoDetect": "off",
+  "material-icon-theme.activeIconPack": "react",
+  "workbench.iconTheme": "material-icon-theme",
+  "[markdown]": {
+    "editor.fontSize": 14,
+    "editor.lineHeight": 26,
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 64,
+    "editor.lineNumbers": "off",
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "strings": "off",
+      "other": "off"
+    },
+    "editor.minimap.enabled": false
+  },
+  "i18n-ally.localesPaths": [
+    "public/locales",
+    "src/i18n"
   ]
 }

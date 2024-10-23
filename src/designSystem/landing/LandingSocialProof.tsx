@@ -14,7 +14,7 @@ export const LandingSocialProof: React.FC<Props> = ({ logos }) => {
     <section className="py-16">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-center  text-slate-600 dark:text-slate-400">
-          Featured on
+          Soutenu par
         </h2>
         <div className="flex gap-8 md:gap-20 items-center justify-center mt-8 flex-wrap">
           {logos.map((logo, idx) => (

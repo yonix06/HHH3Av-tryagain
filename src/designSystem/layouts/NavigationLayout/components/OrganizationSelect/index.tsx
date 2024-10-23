@@ -33,7 +33,7 @@ export const OrganizationItem = ({
         cursor: 'pointer',
       }}
     >
-      <Avatar shape="square" size={20} src={organization.pictureUrl}>
+      <Avatar shape="square" size={50} src={organization.pictureUrl}>
         {initial}
       </Avatar>
 

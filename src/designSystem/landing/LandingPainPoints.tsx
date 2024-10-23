@@ -59,7 +59,7 @@ export const LandingPainPoints: React.FC<Props> = ({
         <div className="text-center pt-20">
           <div className="flex flex-col items-center">
             <p className="text-slate-600 dark:text-slate-400 text-lg">
-              <ArrowDownOutlined /> there is an easier way
+              <ArrowDownOutlined /> Il existe une solution...
             </p>
           </div>
         </div>

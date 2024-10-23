@@ -7,7 +7,7 @@ interface Props extends ImgHTMLAttributes<HTMLImageElement> {
 }
 
 export const Logo: React.FC<Props> = ({
-  height = 50,
+  height = 70,
   isLabel = false,
   style,
   ...props

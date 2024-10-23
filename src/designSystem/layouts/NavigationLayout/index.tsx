@@ -1,7 +1,7 @@
 import { useUserContext } from '@/core/context'
 import { Flex } from 'antd'
 import { useParams, usePathname, useRouter } from 'next/navigation'
-import { ReactNode, useState } from 'react'
+import { ReactNode } from 'react'
 import { Mobilebar } from './components/Mobilebar'
 import { Topbar } from './components/Topbar'
 import { ItemType } from './types'
@@ -24,65 +24,65 @@ export const NavigationLayout: React.FC<Props> = ({ children }) => {
   const items: ItemType[] = [
     {
       key: '/home',
-      label: 'Home Page',
+      label: 'Dashboard',
       position: 'topbar',
       category: 'General',
       onClick: () => goTo('/home'),
     },
     {
       key: '/documents',
-      label: 'Document Management',
+      label: 'Management de Documents',
       position: 'leftbar',
       category: 'Documents',
       onClick: () => goTo('/documents'),
     },
     {
       key: '/request-document',
-      label: 'Document Request',
+      label: 'Requêtes',
       position: 'leftbar',
       category: 'Documents',
       onClick: () => goTo('/request-document'),
     },
     {
       key: '/map',
-      label: 'Cartography',
+      label: 'Cartographie',
       position: 'leftbar',
-      category: 'Tools',
+      category: 'Outils',
       onClick: () => goTo('/map'),
     },
     {
       key: '/email',
-      label: 'Email Composer',
+      label: 'Diffusion par Email',
       position: 'leftbar',
-      category: 'Tools',
+      category: 'Outils',
       onClick: () => goTo('/email'),
     },
     {
       key: '/admin',
-      label: 'Admin Panel',
+      label: '🐧 Admin control panel',
       position: 'leftbar',
-      category: 'Admin',
+      category: 'Administration',
       onClick: () => goTo('/admin'),
     },
     {
       key: '/documents/validate',
-      label: 'Document Validation',
+      label: 'Validation de Documents',
       position: 'leftbar',
       category: 'Documents',
       onClick: () => goTo('/documents/validate'),
     },
     {
       key: '/documents/archive',
-      label: 'Archive',
+      label: 'Recherche',
       position: 'leftbar',
       category: 'Documents',
       onClick: () => goTo('/documents/archive'),
     },
     {
       key: '/organizations/:organizationId/pricing',
-      label: 'Pricing',
+      label: 'Facturation',
       position: 'leftbar',
-      category: 'Organization',
+      category: '€',
       isVisible: !!organization,
       onClick: () =>
         goTo(
@@ -104,13 +104,16 @@ export const NavigationLayout: React.FC<Props> = ({ children }) => {
       onClick: item.onClick,
     }))
 
-  const groupedItems = itemsVisible.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = []
-    }
-    acc[item.category].push(item)
-    return acc
-  }, {} as Record<string, ItemType[]>)
+  const groupedItems = itemsVisible.reduce(
+    (acc, item) => {
+      if (!acc[item.category]) {
+        acc[item.category] = []
+      }
+      acc[item.category].push(item)
+      return acc
+    },
+    {} as Record<string, ItemType[]>,
+  )
 
   const itemsTopbar = Object.entries(groupedItems).map(([category, items]) => ({
     key: category,
