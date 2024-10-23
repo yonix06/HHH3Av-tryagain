@@ -114,10 +114,11 @@ export default function LandingPage() {
       monthly: 299,
       yearly: 3299,
       features: [
-        `Jusqu'à 10 000 documents`,
+        `Jusqu'à 10 00 documents`,
         `Cartographie de base`,
-        `Support par e-mail`,
+        `Support par e-mail sous 48h`,
       ],
+      highlight: true,
     },
     {
       title: `Professionnel`,
@@ -125,12 +126,11 @@ export default function LandingPage() {
       monthly: 599,
       yearly: 6599,
       features: [
-        `Jusqu'à 50 000 documents`,
+        `Jusqu'à 50 00 documents`,
         `Cartographie avancée`,
-        `Support prioritaire`,
+        `Support prioritaire par email avec prise en main à distance au besoin`,
         `Intégrations personnalisées`,
       ],
-      highlight: true,
     },
     {
       title: `Entreprise`,
@@ -140,8 +140,8 @@ export default function LandingPage() {
       features: [
         `Documents illimités`,
         `Ensemble complet de fonctionnalités`,
-        `Support dédié 24/7`,
-        `Option sur site`,
+        `Support dédié 16/7 (hors astreinte)`,
+        `Assistance complète à distance + Option sur site`,
       ],
     },
   ]
