@@ -22,7 +22,7 @@ import {
   TagsOutlined,
   BgColorsOutlined,
 } from '@ant-design/icons'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 const { Title, Text } = Typography
 const { TabPane } = Tabs
 import { useUserContext } from '@/core/context'
@@ -37,12 +37,16 @@ import { dummyTags } from '@/utils/dummyData'
 export default function AdminPanelPage() {
   const router = useRouter()
   const params = useParams<any>()
-  const { user, organization } = useUserContext()
+  const { user, organization, organizations } = useUserContext()
   const { enqueueSnackbar } = useSnackbar()
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [modalType, setModalType] = useState('')
 
-  const { data: users } = Api.user.findMany.useQuery({})
+  const { data: users, refetch: refetchUsers } = Api.user.findMany.useQuery({})
+  const { data: userOrganizations, refetch: refetchUserOrganizations } = Api.organizationRole.findMany.useQuery({
+    where: { userId: user?.id },
+    include: { organization: true },
+  });
   const { data: settings } = Api.organization.findUnique.useQuery({
     where: { id: organization?.id },
   })
@@ -60,16 +64,62 @@ export default function AdminPanelPage() {
   const { mutateAsync: createTemplate } =
     Api.documentTemplate.create.useMutation()
   const { mutateAsync: createTag } = Api.tag.create.useMutation()
+  const { mutateAsync: createOrganizationRole } = Api.organizationRole.create.useMutation()
+  const { mutateAsync: updateOrganizationRole } = Api.organizationRole.update.useMutation()
+  const apiUtils = Api.useUtils()
+  const { data: organizationRoleData, refetch: refetchOrganizationRole } = Api.organizationRole.findFirst.useQuery({
+    where: {
+      userId: user?.id,
+      organizationId: organization?.id,
+    },
+  }, { enabled: false })
+
+  useEffect(() => {
+    refetchUsers();
+    refetchUserOrganizations();
+  }, [organization])
 
   const handleUpdateUser = async (values: any) => {
     try {
-      await updateUser({ where: { id: values.id }, data: values })
-      enqueueSnackbar('User updated successfully', { variant: 'success' })
-      setIsModalVisible(false)
+      await updateUser({
+        where: { id: values.id },
+        data: {
+          name: values.name,
+          email: values.email,
+          globalRole: values.globalRole,
+        },
+      });
+      if (values.organizationId) {
+        const existingRole = await apiUtils.organizationRole.findFirst.fetch({
+          where: {
+            userId: values.id,
+            organizationId: values.organizationId,
+          },
+        });
+        if (existingRole) {
+          await updateOrganizationRole({
+            where: { id: existingRole.id },
+            data: { name: 'member' },
+          });
+        } else {
+          await createOrganizationRole({
+            data: {
+              userId: values.id,
+              organizationId: values.organizationId,
+              name: 'member',
+            },
+          });
+        }
+      }
+      enqueueSnackbar('User updated successfully', { variant: 'success' });
+      setIsModalVisible(false);
+      refetchUsers();
+      refetchUserOrganizations();
+      refetchOrganizationRole();
     } catch (error) {
-      enqueueSnackbar('Failed to update user', { variant: 'error' })
+      enqueueSnackbar('Failed to update user', { variant: 'error' });
     }
-  }
+  };
 
   const handleUpdateSettings = async (values: any) => {
     try {
@@ -151,7 +201,15 @@ export default function AdminPanelPage() {
                     </Button>,
                   ]}
                 >
-                  <List.Item.Meta title={item.name} description={item.email} />
+                  <List.Item.Meta 
+                    title={item.name} 
+                    description={
+                      <>
+                        <div>{item.email}</div>
+                        <div>Organization: N/A</div>
+                      </>
+                    } 
+                  />
                   <div>Role: {item.globalRole}</div>
                 </List.Item>
               )}
@@ -296,6 +354,16 @@ export default function AdminPanelPage() {
               <Select>
                 <Select.Option value="USER">User</Select.Option>
                 <Select.Option value="ADMIN">Admin</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item name="organizationId" label="Add to Organization">
+              <Select>
+                <Select.Option value="">None</Select.Option>
+                {organizations.map(org => (
+                  <Select.Option key={org.id} value={org.id}>
+                    {org.name}
+                  </Select.Option>
+                ))}
               </Select>
             </Form.Item>
             <Form.Item>

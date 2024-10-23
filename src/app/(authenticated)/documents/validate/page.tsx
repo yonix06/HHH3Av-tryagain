@@ -14,7 +14,7 @@ import { useUploadPublic } from '@/core/hooks/upload'
 import { useSnackbar } from 'notistack'
 import dayjs from 'dayjs'
 import { PageLayout } from '@/designSystem'
-import { dummyDocuments } from '@/utils/dummyData'
+import { dummyDocuments, dummyValidations } from '@/utils/dummyData'
 
 export default function DocumentValidationPage() {
   const router = useRouter()
@@ -32,14 +32,13 @@ export default function DocumentValidationPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Simulate API call with dummy data
     const fetchPendingDocuments = () => {
       const pendingDocs = dummyDocuments.flatMap(doc =>
         doc.versions.map(version => ({
           id: version.id,
           versionNumber: version.versionNumber,
           createdAt: version.createdAt,
-          document: { name: doc.name },
+          document: { name: doc.name, id: doc.id },
         }))
       )
       setPendingDocuments(pendingDocs)
@@ -69,8 +68,14 @@ export default function DocumentValidationPage() {
   }
 
   const createValidation = async (data: any) => {
-    // Simulating API call
-    return new Promise(resolve => setTimeout(resolve, 500))
+    const newValidation = {
+      id: Math.random().toString(36).substr(2, 9),
+      ...data.data,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    dummyValidations.push(newValidation)
+    return Promise.resolve(newValidation)
   }
 
   const handleValidation = async (

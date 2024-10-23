@@ -43,44 +43,23 @@ export default function DocumentManagementPage() {
   const [tags, setTags] = useState<any[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
 
-  const { data: fetchedDocuments, refetch: refetchDocuments } = Api.document.findMany.useQuery({
-    where: organization?.id ? { organizationId: organization.id } : {},
-    include: {
-      documentVersions: true,
-      documentTags: { include: { tag: true } },
-    },
-  }, {
-    enabled: true,
-  })
-
-  const { data: templates } = Api.documentTemplate.findMany.useQuery({
-    where: { organizationId: organization?.id },
-  })
-
-  const { data: fetchedTags } = Api.tag.findMany.useQuery({
-    where: organization?.id ? { organizationId: organization.id } : {},
-  })
-
   useEffect(() => {
     const fetchDocuments = async () => {
       try {
-        await refetchDocuments()
-        setDocuments(fetchedDocuments || dummyDocuments)
-        setTags(fetchedTags || dummyTags)
-      } catch (error) {
-        console.error('Error fetching documents:', error)
         setDocuments(dummyDocuments)
         setTags(dummyTags)
+      } catch (error) {
+        console.error('Error setting documents:', error)
       } finally {
         setIsLoading(false)
       }
     }
 
     fetchDocuments()
-  }, [organization?.id, refetchDocuments, fetchedDocuments, fetchedTags])
+  }, [])
 
   const filteredDocuments = documents.filter(doc =>
-    selectedTags.length === 0 || doc.documentTags.some(dt => selectedTags.includes(dt.tag.id))
+    selectedTags.length === 0 || doc.tags.some(tag => selectedTags.includes(tag))
   )
 
   const createDocument = async (values: any) => {
@@ -141,30 +120,27 @@ export default function DocumentManagementPage() {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (_: any, record: any) => {
-        const latestVersion = record.documentVersions && record.documentVersions.length > 0
-          ? record.documentVersions[record.documentVersions.length - 1]
-          : null;
-        return latestVersion ? 'Published' : 'Draft';
-      },
     },
     {
       title: 'Tags',
       key: 'tags',
-      dataIndex: 'documentTags',
-      render: (tags: any[]) => (
+      dataIndex: 'tags',
+      render: (tags: string[]) => (
         <>
-          {tags?.map(tag => (
-            <Tag color={tag.tag.color} key={tag.tag.id}>
-              {tag.tag.name}
-            </Tag>
-          ))}
+          {tags?.map(tagName => {
+            const tag = dummyTags.find(t => t.name === tagName);
+            return (
+              <Tag color={tag?.color} key={tag?.id}>
+                {tagName}
+              </Tag>
+            );
+          })}
         </>
       ),
     },
     {
       title: 'Version',
-      dataIndex: 'documentVersions',
+      dataIndex: 'versions',
       key: 'version',
       render: (versions: any[]) =>
         versions?.length > 0
@@ -277,13 +253,11 @@ export default function DocumentManagementPage() {
               <Input.TextArea placeholder="Description" />
             </Form.Item>
             <Form.Item name="templateId">
-              <Select placeholder="Select a template">
-                {templates?.map(template => (
-                  <Select.Option key={template.id} value={template.id}>
-                    {template.name}
-                  </Select.Option>
-                ))}
-              </Select>
+            <Select placeholder="Select a template">
+              <Select.Option value="template1">Template 1</Select.Option>
+              <Select.Option value="template2">Template 2</Select.Option>
+              <Select.Option value="template3">Template 3</Select.Option>
+            </Select>
             </Form.Item>
             <Form.Item>
               <Button type="primary" htmlType="submit">
