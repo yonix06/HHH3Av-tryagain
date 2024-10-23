@@ -11,14 +11,15 @@ const defaultColors = {
   success: '#52c41a',
   warning: '#faad14',
   textBase: 'white',
-  link: '#00a1ec',
-  bgBase: 'linear-gradient(to bottom right, rgb(2 6 33), rgb(90 124 230))',
-  bgContainer: 'linear-gradient(to bottom right, rgb(2 6 43), rgb(8 24 92))',
-  border: '#3f3f45',
-  borderSecondary: '#27272a',
+  link: '#005E8A',
+  bgBase: 'linear-gradient(to bottom right, rgb(2 8 20), rgb(9 19 48))',
+  bgContainer:
+    'linear-gradient(to top, rgba(255 255 255 / 0), rgba(87 111 219 / 0.49))',
+  border: '#9A9AA7',
+  borderSecondary: '#7A7A80',
   split: 'rgba(255, 255, 255, 0.07)',
-  menuItemHover: '#1890ff',
-  menuItemActive: '#096dd9',
+  menuItemHover: '#1874FF',
+  menuItemActive: '#094BD9',
 }
 
 export const Theme = (theme: any) => ({

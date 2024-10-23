@@ -1,7 +1,7 @@
 import { useUserContext } from '@/core/context'
 import { Flex } from 'antd'
 import { useParams, usePathname, useRouter } from 'next/navigation'
-import { ReactNode, useState } from 'react'
+import { ReactNode } from 'react'
 import { Mobilebar } from './components/Mobilebar'
 import { Topbar } from './components/Topbar'
 import { ItemType } from './types'
@@ -38,7 +38,7 @@ export const NavigationLayout: React.FC<Props> = ({ children }) => {
     },
     {
       key: '/request-document',
-      label: 'Document Request',
+      label: 'Requêtes',
       position: 'leftbar',
       category: 'Documents',
       onClick: () => goTo('/request-document'),
@@ -104,13 +104,16 @@ export const NavigationLayout: React.FC<Props> = ({ children }) => {
       onClick: item.onClick,
     }))
 
-  const groupedItems = itemsVisible.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = []
-    }
-    acc[item.category].push(item)
-    return acc
-  }, {} as Record<string, ItemType[]>)
+  const groupedItems = itemsVisible.reduce(
+    (acc, item) => {
+      if (!acc[item.category]) {
+        acc[item.category] = []
+      }
+      acc[item.category].push(item)
+      return acc
+    },
+    {} as Record<string, ItemType[]>,
+  )
 
   const itemsTopbar = Object.entries(groupedItems).map(([category, items]) => ({
     key: category,
