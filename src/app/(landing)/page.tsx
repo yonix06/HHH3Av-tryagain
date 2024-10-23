@@ -11,12 +11,12 @@ import { LandingSocialProof } from '@/designSystem/landing/LandingSocialProof'
 import { LandingSocialRating } from '@/designSystem/landing/LandingSocialRating'
 import { LandingTestimonials } from '@/designSystem/landing/LandingTestimonials'
 import {
+  BarChartOutlined,
   EditOutlined,
   FileSearchOutlined,
-  SafetyOutlined,
   GlobalOutlined,
+  SafetyOutlined,
   TeamOutlined,
-  BarChartOutlined,
 } from '@ant-design/icons'
 
 export default function LandingPage() {
@@ -166,8 +166,12 @@ export default function LandingPage() {
   ]
 
   const logos = [
-    { url: 'https://i.imgur.com/afwBIFK.png' },
-    { url: 'https://i.imgur.com/LlloOPa.png' },
+    {
+      url: 'https://toppng.com/uploads/preview/github-logo-png-transparent-images-11659780092l6hc50s35i.png',
+    },
+    {
+      url: 'https://w7.pngwing.com/pngs/560/836/png-transparent-region-paca-hd-logo.png',
+    },
     { url: 'https://i.imgur.com/j8jPb4H.png' },
     { url: 'https://i.imgur.com/mJ1sZFv.png' },
   ]
@@ -234,7 +238,7 @@ export default function LandingPage() {
         socialProof={
           <LandingSocialRating
             avatarItems={avatarItems}
-            numberOfUsers={1000}
+            numberOfUsers={10}
             suffixText={`de municipalités satisfaites`}
           />
         }
