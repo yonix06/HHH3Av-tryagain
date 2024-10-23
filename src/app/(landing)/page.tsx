@@ -11,44 +11,44 @@ import { LandingSocialProof } from '@/designSystem/landing/LandingSocialProof'
 import { LandingSocialRating } from '@/designSystem/landing/LandingSocialRating'
 import { LandingTestimonials } from '@/designSystem/landing/LandingTestimonials'
 import {
+  BarChartOutlined,
   EditOutlined,
   FileSearchOutlined,
-  SafetyOutlined,
   GlobalOutlined,
+  SafetyOutlined,
   TeamOutlined,
-  BarChartOutlined,
 } from '@ant-design/icons'
 
 export default function LandingPage() {
   const features = [
     {
-      heading: `Streamlined Document Creation`,
-      description: `Create and manage official documents with ease, saving precious time for what truly matters.`,
+      heading: `Création de documents simplifiée`,
+      description: `Créez et gérez des documents officiels facilement, en économisant un temps précieux pour ce qui compte vraiment.`,
       icon: <EditOutlined />,
     },
     {
-      heading: `Intelligent Search & Retrieval`,
-      description: `Find any document in seconds, not hours. Our smart search puts information at your fingertips.`,
+      heading: `Recherche et récupération intelligentes`,
+      description: `Trouvez n'importe quel document en quelques secondes, pas en heures. Notre recherche intelligente met l'information à portée de main.`,
       icon: <FileSearchOutlined />,
     },
     {
-      heading: `GDPR Compliant Security`,
-      description: `Rest easy knowing your sensitive data is protected with state-of-the-art security measures.`,
+      heading: `Sécurité conforme au RGPD`,
+      description: `Dormez sur vos deux oreilles en sachant que vos données sensibles sont protégées par des mesures de sécurité de pointe.`,
       icon: <SafetyOutlined />,
     },
     {
-      heading: `Interactive Cartography`,
-      description: `Visualize municipal decisions on Google Maps, bringing spatial context to your governance.`,
+      heading: `Cartographie interactive`,
+      description: `Visualisez les décisions municipales sur Google Maps, apportant un contexte spatial à votre gouvernance.`,
       icon: <GlobalOutlined />,
     },
     {
-      heading: `Role-Based Access Control`,
-      description: `Ensure the right people have the right access with our intuitive permission system.`,
+      heading: `Contrôle d'accès basé sur les rôles`,
+      description: `Assurez-vous que les bonnes personnes ont le bon accès grâce à notre système intuitif de permissions.`,
       icon: <TeamOutlined />,
     },
     {
-      heading: `Insightful Analytics`,
-      description: `Gain valuable insights into your document workflows and optimize your municipal operations.`,
+      heading: `Analyses perspicaces`,
+      description: `Obtenez des informations précieuses sur vos flux de documents et optimisez vos opérations municipales.`,
       icon: <BarChartOutlined />,
     },
   ]
@@ -57,48 +57,48 @@ export default function LandingPage() {
     {
       name: `Mayor Sarah Johnson`,
       designation: `City of Oakville`,
-      content: `This system has revolutionized how we manage documents. We've cut our document processing time by 50% and improved transparency significantly.`,
+      content: `Ce système a révolutionné notre gestion des documents. Nous avons réduit notre temps de traitement des documents de 50% et amélioré considérablement la transparence.`,
       avatar: 'https://randomuser.me/api/portraits/women/6.jpg',
     },
     {
       name: `John Smith`,
       designation: `City Clerk, Maplewood`,
-      content: `The cartography feature is a game-changer. It's made our urban planning meetings so much more productive and engaging.`,
+      content: `La fonctionnalité de cartographie est révolutionnaire. Elle a rendu nos réunions d'urbanisme beaucoup plus productives et engageantes.`,
       avatar: 'https://randomuser.me/api/portraits/men/5.jpg',
     },
     {
       name: `Emily Chen`,
       designation: `IT Director, Riverside Municipality`,
-      content: `Implementation was smooth, and the system's flexibility allows us to adapt it to our specific needs. It's truly a solution built for local governments.`,
+      content: `L'implémentation s'est déroulée en douceur, et la flexibilité du système nous permet de l'adapter à nos besoins spécifiques. C'est vraiment une solution conçue pour les gouvernements locaux.`,
       avatar: 'https://randomuser.me/api/portraits/women/27.jpg',
     },
     {
       name: `Michael Brown`,
       designation: `Administrative Officer, Sunnyville`,
-      content: `The time we save on document management is now spent on actually serving our citizens. It's made a real difference in our community.`,
+      content: `Le temps que nous économisons sur la gestion des documents est maintenant consacré à servir réellement nos citoyens. Cela a fait une réelle différence dans notre communauté.`,
       avatar: 'https://randomuser.me/api/portraits/men/12.jpg',
     },
     {
       name: `Lisa Taylor`,
       designation: `Mayor's Assistant, Hillsborough`,
-      content: `The version control and changelog features have improved our accountability. We can now trace every decision with ease.`,
+      content: `Les fonctionnalités de contrôle de version et de journal des modifications ont amélioré notre responsabilité. Nous pouvons maintenant retracer chaque décision facilement.`,
       avatar: 'https://randomuser.me/api/portraits/women/17.jpg',
     },
     {
       name: `David Lee`,
       designation: `City Council Member, Brookside`,
-      content: `As someone who's not tech-savvy, I appreciate how user-friendly this system is. It's made my job so much easier.`,
+      content: `En tant que personne peu férue de technologie, j'apprécie à quel point ce système est convivial. Il a grandement facilité mon travail.`,
       avatar: 'https://randomuser.me/api/portraits/men/7.jpg',
     },
   ]
 
   const navItems = [
     {
-      title: `Features`,
+      title: `Fonctionnalités`,
       link: `#features`,
     },
     {
-      title: `Pricing`,
+      title: `Tarification`,
       link: `#pricing`,
     },
     {
@@ -109,100 +109,104 @@ export default function LandingPage() {
 
   const packages = [
     {
-      title: `Essential`,
-      description: `Perfect for small municipalities`,
+      title: `Essentiel`,
+      description: `Parfait pour les petites municipalités`,
       monthly: 299,
       yearly: 3299,
       features: [
-        `Up to 10,000 documents`,
-        `Basic cartography`,
-        `Email support`,
-      ],
-    },
-    {
-      title: `Professional`,
-      description: `Ideal for medium-sized cities`,
-      monthly: 599,
-      yearly: 6599,
-      features: [
-        `Up to 50,000 documents`,
-        `Advanced cartography`,
-        `Priority support`,
-        `Custom integrations`,
+        `Jusqu'à 10 00 documents`,
+        `Cartographie de base`,
+        `Support par e-mail sous 48h`,
       ],
       highlight: true,
     },
     {
-      title: `Enterprise`,
-      description: `For large metropolitan areas`,
+      title: `Professionnel`,
+      description: `Idéal pour les villes de taille moyenne`,
+      monthly: 599,
+      yearly: 6599,
+      features: [
+        `Jusqu'à 50 00 documents`,
+        `Cartographie avancée`,
+        `Support prioritaire par email avec prise en main à distance au besoin`,
+        `Intégrations personnalisées`,
+      ],
+    },
+    {
+      title: `Entreprise`,
+      description: `Pour les grandes zones métropolitaines`,
       monthly: 999,
       yearly: 10999,
       features: [
-        `Unlimited documents`,
-        `Full-feature set`,
-        `24/7 dedicated support`,
-        `On-premise option`,
+        `Documents illimités`,
+        `Ensemble complet de fonctionnalités`,
+        `Support dédié 16/7 (hors astreinte)`,
+        `Assistance complète à distance + Option sur site`,
       ],
     },
   ]
 
   const questionAnswers = [
     {
-      question: `How secure is the document management system?`,
-      answer: `Our system is built with security as a top priority. We use industry-standard encryption, regular security audits, and are fully GDPR compliant to ensure your sensitive municipal data is always protected.`,
+      question: `Quel est le niveau de sécurité du système de gestion de documents ?`,
+      answer: `Notre système est conçu avec la sécurité comme priorité absolue. Nous utilisons un chiffrement aux normes de l'industrie, des audits de sécurité réguliers, et sommes entièrement conformes au RGPD pour garantir que vos données municipales sensibles sont toujours protégées.`,
     },
     {
-      question: `Can we integrate this with our existing systems?`,
-      answer: `Absolutely! Our system is designed to be flexible and can integrate with a wide range of existing municipal software. Our team will work with you to ensure smooth integration and data migration.`,
+      question: `Pouvons-nous intégrer cela à nos systèmes existants ?`,
+      answer: `Absolument ! Notre système est conçu pour être flexible et peut s'intégrer à une large gamme de logiciels municipaux existants. Notre équipe travaillera avec vous pour assurer une intégration en douceur et une migration des données.`,
     },
     {
-      question: `How long does implementation typically take?`,
-      answer: `Implementation time varies depending on the size of your municipality and the complexity of your needs. However, most of our clients are up and running within 4-6 weeks, including training and data migration.`,
+      question: `Combien de temps prend généralement l'implémentation ?`,
+      answer: `Le temps d'implémentation varie en fonction de la taille de votre municipalité et de la complexité de vos besoins. Cependant, la plupart de nos clients sont opérationnels en 4 à 6 semaines, y compris la formation et la migration des données.`,
     },
     {
-      question: `Do you offer training for our staff?`,
-      answer: `Yes, we provide comprehensive training as part of our implementation process. This includes both online and on-site options, as well as ongoing support to ensure your team can make the most of our system.`,
+      question: `Proposez-vous une formation pour notre personnel ?`,
+      answer: `Oui, nous fournissons une formation complète dans le cadre de notre processus d'implémentation. Cela inclut des options en ligne et sur site, ainsi qu'un support continu pour s'assurer que votre équipe puisse tirer le meilleur parti de notre système.`,
     },
   ]
 
   const logos = [
-    { url: 'https://i.imgur.com/afwBIFK.png' },
-    { url: 'https://i.imgur.com/LlloOPa.png' },
+    {
+      url: 'https://toppng.com/uploads/preview/github-logo-png-transparent-images-11659780092l6hc50s35i.png',
+    },
+    {
+      url: 'https://w7.pngwing.com/pngs/560/836/png-transparent-region-paca-hd-logo.png',
+    },
     { url: 'https://i.imgur.com/j8jPb4H.png' },
     { url: 'https://i.imgur.com/mJ1sZFv.png' },
   ]
 
   const steps = [
     {
-      heading: `Sign Up`,
-      description: `Create your account and tell us about your municipality's needs.`,
+      heading: `Inscription`,
+      description: `Créez votre compte et parlez-nous des besoins de votre municipalité.`,
     },
     {
-      heading: `Customize`,
-      description: `We'll tailor the system to fit your specific requirements and workflows.`,
+      heading: `Personnalisation`,
+      description: `Nous adapterons le système pour répondre à vos exigences et flux de travail spécifiques.`,
     },
     {
-      heading: `Migrate`,
-      description: `We'll securely transfer your existing documents into the new system.`,
+      heading: `Migration`,
+      description: `Nous transférerons en toute sécurité vos documents existants dans le nouveau système.`,
     },
     {
-      heading: `Transform`,
-      description: `Watch as your document management becomes effortless and efficient.`,
+      heading: `Transformation`,
+      description: `Observez comment votre gestion documentaire devient sans effort et efficace.`,
     },
   ]
 
   const painPoints = [
     {
       emoji: `🕵️`,
-      title: `Endless hours spent searching for documents`,
+      title: `Des heures interminables passées à chercher des documents`,
     },
     {
       emoji: `🗄️`,
-      title: `Overwhelmed by paper files and disorganized digital storage`,
+      title: `Submergé par les dossiers papier et le stockage numérique désorganisé`,
     },
     {
       emoji: `😓`,
-      title: `Stress from compliance risks and data security concerns`,
+      title: `Stress lié aux risques de conformité et aux préoccupations de sécurité des données`,
     },
   ]
 
@@ -227,57 +231,57 @@ export default function LandingPage() {
   return (
     <LandingContainer navItems={navItems}>
       <LandingHero
-        title={`Empower Your Municipality with Seamless Document Management`}
-        subtitle={`Transform your local government's efficiency and transparency with our cutting-edge document management system. Say goodbye to paperwork chaos and hello to streamlined governance.`}
-        buttonText={`Start Your Transformation`}
+        title={`Donnez du pouvoir à votre municipalité avec une gestion documentaire fluide`}
+        subtitle={`Transformez l'efficacité et la transparence de votre gouvernement local avec notre système de gestion documentaire de pointe. Dites adieu au chaos administratif et bonjour à une gouvernance rationalisée.`}
+        buttonText={`Commencez votre transformation`}
         pictureUrl={`https://marblism-dashboard-api--production-public.s3.us-west-1.amazonaws.com/HHH3Av-tryagain-TV0M`}
         socialProof={
           <LandingSocialRating
             avatarItems={avatarItems}
-            numberOfUsers={1000}
-            suffixText={`from satisfied municipalities`}
+            numberOfUsers={10}
+            suffixText={`de municipalités satisfaites`}
           />
         }
       />
       <LandingSocialProof
         logos={logos}
-        title={`Trusted by Leading Local Governments`}
+        title={`Fait confiance par les gouvernements locaux leaders`}
       />
       <LandingPainPoints
-        title={`The Hidden Costs of Inefficient Document Management: 19% of Government Time Wasted`}
+        title={`Les coûts cachés d'une gestion inefficace des documents : 19% du temps gouvernemental gaspillé`}
         painPoints={painPoints}
       />
       <LandingHowItWorks
-        title={`Your Journey to Effortless Municipal Document Management`}
+        title={`Votre parcours vers une gestion documentaire municipale sans effort`}
         steps={steps}
       />
       <LandingFeatures
         id="features"
-        title={`Unlock the Full Potential of Your Municipal Operations`}
-        subtitle={`Our comprehensive suite of features is designed to address every aspect of local government document management, ensuring efficiency, compliance, and citizen satisfaction.`}
+        title={`Libérez tout le potentiel de vos opérations municipales`}
+        subtitle={`Notre suite complète de fonctionnalités est conçue pour répondre à tous les aspects de la gestion documentaire des gouvernements locaux, assurant efficacité, conformité et satisfaction des citoyens.`}
         features={features}
       />
       <LandingTestimonials
-        title={`Success Stories from Municipalities Like Yours`}
-        subtitle={`Discover how local governments across the country have transformed their operations with our document management system.`}
+        title={`Histoires de réussite de municipalités comme la vôtre`}
+        subtitle={`Découvrez comment les gouvernements locaux à travers le pays ont transformé leurs opérations avec notre système de gestion documentaire.`}
         testimonials={testimonials}
       />
       <LandingPricing
         id="pricing"
-        title={`Invest in Efficiency, Transparency, and Better Governance`}
-        subtitle={`Choose the plan that best fits your municipality's size and needs. All plans include our core features, regular updates, and dedicated support.`}
+        title={`Investissez dans l'efficacité, la transparence et une meilleure gouvernance`}
+        subtitle={`Choisissez le plan qui correspond le mieux à la taille et aux besoins de votre municipalité. Tous les plans incluent nos fonctionnalités de base, des mises à jour régulières et un support dédié.`}
         packages={packages}
       />
       <LandingFAQ
         id="faq"
-        title={`Your Questions, Answered`}
-        subtitle={`We're here to help you make the best decision for your municipality. If you don't see your question here, please don't hesitate to contact us.`}
+        title={`Vos questions, nos réponses`}
+        subtitle={`Nous sommes là pour vous aider à prendre la meilleure décision pour votre municipalité. Si vous ne voyez pas votre question ici, n'hésitez pas à nous contacter.`}
         questionAnswers={questionAnswers}
       />
       <LandingCTA
-        title={`Ready to Revolutionize Your Municipal Document Management?`}
-        subtitle={`Join the growing number of local governments that are saving time, reducing stress, and serving their citizens better. Your efficient future starts here.`}
-        buttonText={`Get Started Now`}
+        title={`Prêt à révolutionner votre gestion documentaire municipale ?`}
+        subtitle={`Rejoignez le nombre croissant de gouvernements locaux qui économisent du temps, réduisent le stress et servent mieux leurs citoyens. Votre avenir efficace commence ici.`}
+        buttonText={`Commencez maintenant`}
         buttonLink={`/register`}
       />
     </LandingContainer>

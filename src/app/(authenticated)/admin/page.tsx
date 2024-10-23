@@ -21,26 +21,28 @@ import {
   FileTextOutlined,
   TagsOutlined,
   BgColorsOutlined,
+  GlobalOutlined,
 } from '@ant-design/icons'
 import { useState, useEffect } from 'react'
 const { Title, Text } = Typography
 const { TabPane } = Tabs
 import { useUserContext } from '@/core/context'
-import { useRouter, useParams } from 'next/navigation'
-import { useUploadPublic } from '@/core/hooks/upload'
+import { useRouter } from 'next/navigation'
 import { useSnackbar } from 'notistack'
 import dayjs from 'dayjs'
 import { Api } from '@/core/trpc'
 import { PageLayout } from '@/designSystem'
 import { dummyTags } from '@/utils/dummyData'
+import useLocalization from '@/hooks/useLocalization'
+import { getLanguages } from '@/i18n/config'
 
 export default function AdminPanelPage() {
   const router = useRouter()
-  const params = useParams<any>()
   const { user, organization, organizations } = useUserContext()
   const { enqueueSnackbar } = useSnackbar()
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [modalType, setModalType] = useState('')
+  const { t, changeLanguage, currentLanguage } = useLocalization()
 
   const { data: users, refetch: refetchUsers } = Api.user.findMany.useQuery({})
   const { data: userOrganizations, refetch: refetchUserOrganizations } = Api.organizationRole.findMany.useQuery({
@@ -57,6 +59,7 @@ export default function AdminPanelPage() {
     where: organization?.id ? { organizationId: organization.id } : {},
   })
   const tags = dummyTags
+  const [languages, setLanguages] = useState(getLanguages())
 
   const { mutateAsync: updateUser } = Api.user.update.useMutation()
   const { mutateAsync: updateOrganization } =
@@ -166,6 +169,34 @@ export default function AdminPanelPage() {
       setIsModalVisible(false)
     } catch (error) {
       enqueueSnackbar('Failed to create tag', { variant: 'error' })
+    }
+  }
+
+  const handleAddLanguage = (language: string) => {
+    try {
+      if (languages && !languages.includes(language)) {
+        setLanguages([...languages, language])
+        enqueueSnackbar(`Language ${language} added successfully`, { variant: 'success' })
+      } else {
+        enqueueSnackbar(`Language ${language} already exists`, { variant: 'warning' })
+      }
+    } catch (error) {
+      console.error('Error adding language:', error)
+      enqueueSnackbar('Failed to add language', { variant: 'error' })
+    }
+  }
+
+  const handleRemoveLanguage = (language: string) => {
+    try {
+      if (language === 'en') {
+        enqueueSnackbar('Cannot remove default language (English)', { variant: 'error' })
+      } else if (languages) {
+        setLanguages(languages.filter(lang => lang !== language))
+        enqueueSnackbar(`Language ${language} removed successfully`, { variant: 'success' })
+      }
+    } catch (error) {
+      console.error('Error removing language:', error)
+      enqueueSnackbar('Failed to remove language', { variant: 'error' })
     }
   }
 
@@ -330,6 +361,39 @@ export default function AdminPanelPage() {
               Edit Theme Settings
             </Button>
           </TabPane>
+          <TabPane
+            tab={
+              <span>
+                <GlobalOutlined />
+                Language Management
+              </span>
+            }
+            key="7"
+          >
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Button onClick={() => showModal('language')}>Add New Language</Button>
+              <List
+                dataSource={languages}
+                renderItem={item => (
+                  <List.Item
+                    actions={[
+                      <Button key="edit" onClick={() => changeLanguage(item)}>
+                        Set as Current
+                      </Button>,
+                      <Button key="delete" danger onClick={() => handleRemoveLanguage(item)} disabled={item === 'en'}>
+                        Remove
+                      </Button>,
+                    ]}
+                  >
+                    <List.Item.Meta
+                      title={item.toUpperCase()}
+                      description={item === currentLanguage ? 'Current Language' : ''}
+                    />
+                  </List.Item>
+                )}
+              />
+            </Space>
+          </TabPane>
         </Tabs>
       </Card>
 
@@ -435,6 +499,18 @@ export default function AdminPanelPage() {
             <Form.Item>
               <Button type="primary" htmlType="submit">
                 Update Theme
+              </Button>
+            </Form.Item>
+          </Form>
+        )}
+        {modalType === 'language' && (
+          <Form onFinish={(values) => handleAddLanguage(values.language)}>
+            <Form.Item name="language" label="Language Code">
+              <Input />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                Add Language
               </Button>
             </Form.Item>
           </Form>

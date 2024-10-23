@@ -1,0 +1,33 @@
+{
+  "Language Management": "Language Management",
+  "Add Language": "Add Language",
+  "Edit": "Edit",
+  "Delete": "Delete",
+  "Cannot delete the default language": "Cannot delete the default language",
+  "Language added successfully": "Language added successfully",
+  "Language updated successfully": "Language updated successfully",
+  "Language deleted successfully": "Language deleted successfully",
+  "Current Language": "Current Language"
+}
+{
+  "Language Management": "Gestión de Idiomas",
+  "Add Language": "Añadir Idioma",
+  "Edit": "Editar",
+  "Delete": "Eliminar",
+  "Cannot delete the default language": "No se puede eliminar el idioma predeterminado",
+  "Language added successfully": "Idioma añadido con éxito",
+  "Language updated successfully": "Idioma actualizado con éxito",
+  "Language deleted successfully": "Idioma eliminado con éxito",
+  "Current Language": "Idioma Actual"
+}
+{
+  "Language Management": "Gestion des Langues",
+  "Add Language": "Ajouter une Langue",
+  "Edit": "Modifier",
+  "Delete": "Supprimer",
+  "Cannot delete the default language": "Impossible de supprimer la langue par défaut",
+  "Language added successfully": "Langue ajoutée avec succès",
+  "Language updated successfully": "Langue mise à jour avec succès",
+  "Language deleted successfully": "Langue supprimée avec succès",
+  "Current Language": "Langue Actuelle"
+}

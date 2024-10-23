@@ -15,6 +15,7 @@ import {
   Tag,
   Tooltip,
   Typography,
+  Select,
 } from 'antd'
 
 import { useUserContext } from '@/core/context'
@@ -38,6 +39,7 @@ import { useUpdate } from './hooks/useUpdate'
 
 type UserWithOrganizationRoles = User & {
   organizationRoles: OrganizationRole[]
+  languagePreference?: string
 }
 
 export default function OrganizationTeamPage() {
@@ -112,6 +114,21 @@ export default function OrganizationTeamPage() {
 
     if (isSuccess) {
       refetchUsers()
+    }
+  }
+
+  const { mutateAsync: updateUser } = Api.user.update.useMutation()
+
+  const handleUpdateLanguagePreference = async (userId: string, language: string) => {
+    try {
+      await updateUser({
+        where: { id: userId },
+        data: { languagePreference: language },
+      })
+      enqueueSnackbar('Language preference updated successfully', { variant: 'success' })
+      refetchUsers()
+    } catch (error) {
+      enqueueSnackbar('Failed to update language preference', { variant: 'error' })
     }
   }
 
@@ -209,6 +226,21 @@ export default function OrganizationTeamPage() {
             )
           })}
         </Row>
+      ),
+    },
+    {
+      title: 'Language Preference',
+      key: 'languagePreference',
+      render: (user: UserWithOrganizationRoles) => (
+        <Select
+          style={{ width: 120 }}
+          value={user.languagePreference || 'en'}
+          onChange={(value) => handleUpdateLanguagePreference(user.id, value)}
+        >
+          <Select.Option value="en">English</Select.Option>
+          <Select.Option value="es">Spanish</Select.Option>
+          <Select.Option value="fr">French</Select.Option>
+        </Select>
       ),
     },
     {

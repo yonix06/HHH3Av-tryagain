@@ -35,5 +35,14 @@
   "microsoft-sovereign-cloud.environment": "custom",
   "npm.autoDetect": "off",
   "material-icon-theme.activeIconPack": "react",
-  "workbench.iconTheme": "material-icon-theme"
+  "workbench.iconTheme": "material-icon-theme",
+  "[markdown]": {
+    "editor.fontSize": 14,
+    "editor.lineHeight": 26,
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 64,
+    "editor.lineNumbers": "off",
+    "editor.quickSuggestions": false,
+    "editor.minimap.enabled": false
+  }
 }
