@@ -1,4 +1,3 @@
-import { theme } from 'antd'
 import { Inter } from 'next/font/google'
 
 const interFont = Inter({
@@ -13,8 +12,8 @@ const defaultColors = {
   warning: '#faad14',
   textBase: 'white',
   link: '#00a1ec',
-  bgBase: 'black',
-  bgContainer: 'black',
+  bgBase: 'linear-gradient(to bottom right, rgb(2 6 33), rgb(90 124 230))',
+  bgContainer: 'linear-gradient(to bottom right, rgb(2 6 43), rgb(8 24 92))',
   border: '#3f3f45',
   borderSecondary: '#27272a',
   split: 'rgba(255, 255, 255, 0.07)',
@@ -35,14 +34,20 @@ export const Theme = (theme: any) => ({
     colorLink: theme?.colors?.link ?? defaultColors.link,
     colorBgBase: theme?.colors?.bgBase ?? defaultColors.bgBase,
     colorBgContainer: theme?.colors?.bgContainer ?? defaultColors.bgContainer,
+    backgroundImage: theme?.colors?.bgBase ?? defaultColors.bgBase,
     colorBorder: theme?.colors?.border ?? defaultColors.border,
-    colorBorderSecondary: theme?.colors?.borderSecondary ?? defaultColors.borderSecondary,
+    colorBorderSecondary:
+      theme?.colors?.borderSecondary ?? defaultColors.borderSecondary,
     colorSplit: theme?.colors?.split ?? defaultColors.split,
-    colorMenuItemHover: theme?.colors?.menuItemHover ?? defaultColors.menuItemHover,
-    colorMenuItemActive: theme?.colors?.menuItemActive ?? defaultColors.menuItemActive,
+    colorMenuItemHover:
+      theme?.colors?.menuItemHover ?? defaultColors.menuItemHover,
+    colorMenuItemActive:
+      theme?.colors?.menuItemActive ?? defaultColors.menuItemActive,
 
     // Typography
-    fontFamily: theme?.typography?.fontFamily ?? `${interFont.style.fontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial`,
+    fontFamily:
+      theme?.typography?.fontFamily ??
+      `${interFont.style.fontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial`,
     fontSize: theme?.typography?.fontSize ?? 14,
     fontSizeHeading1: theme?.typography?.fontSizeHeading1 ?? 38,
     fontSizeHeading2: theme?.typography?.fontSizeHeading2 ?? 30,
@@ -57,7 +62,8 @@ export const Theme = (theme: any) => ({
 
     // Layout
     padding: theme?.layout?.padding ?? 16,
-    boxShadow: theme?.layout?.boxShadow ??
+    boxShadow:
+      theme?.layout?.boxShadow ??
       '0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05)',
 
     borderRadius: theme?.layout?.borderRadius ?? 6,
@@ -78,13 +84,17 @@ export const Theme = (theme: any) => ({
     Menu: {
       activeBarBorderWidth: theme?.components?.menu?.activeBarBorderWidth ?? 0,
       itemHeight: theme?.components?.menu?.itemHeight ?? 30,
-      horizontalItemSelectedColor: theme?.components?.menu?.horizontalItemSelectedColor ?? 'white',
-      horizontalItemSelectedBg: theme?.components?.menu?.horizontalItemSelectedBg ?? 'transparent',
+      horizontalItemSelectedColor:
+        theme?.components?.menu?.horizontalItemSelectedColor ?? 'white',
+      horizontalItemSelectedBg:
+        theme?.components?.menu?.horizontalItemSelectedBg ?? 'transparent',
       itemSelectedColor: theme?.components?.menu?.itemSelectedColor ?? 'white',
       itemSelectedBg: theme?.components?.menu?.itemSelectedBg ?? 'transparent',
-      itemActiveBg: theme?.components?.menu?.itemActiveBg ?? defaultColors.menuItemActive,
+      itemActiveBg:
+        theme?.components?.menu?.itemActiveBg ?? defaultColors.menuItemActive,
       itemHoverColor: theme?.components?.menu?.itemHoverColor ?? 'white',
-      itemHoverBg: theme?.components?.menu?.itemHoverBg ?? defaultColors.menuItemHover,
+      itemHoverBg:
+        theme?.components?.menu?.itemHoverBg ?? defaultColors.menuItemHover,
       itemColor: theme?.components?.menu?.itemColor ?? '#909090',
       itemBg: theme?.components?.menu?.itemBg ?? 'transparent',
       iconMarginInlineEnd: theme?.components?.menu?.iconMarginInlineEnd ?? 8,
@@ -96,7 +106,8 @@ export const Theme = (theme: any) => ({
     },
     Button: {
       paddingInlineSM: theme?.components?.button?.paddingInlineSM ?? 11,
-      colorTextLightSolid: theme?.components?.button?.colorTextLightSolid ?? 'black',
+      colorTextLightSolid:
+        theme?.components?.button?.colorTextLightSolid ?? 'black',
       primaryColor: theme?.components?.button?.primaryColor ?? 'black',
       fontWeight: theme?.components?.button?.fontWeight ?? 500,
     },

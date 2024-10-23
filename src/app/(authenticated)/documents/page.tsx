@@ -11,6 +11,7 @@ import {
   Select,
   Space,
   Tag,
+  List,
 } from 'antd'
 import {
   PlusOutlined,
@@ -36,12 +37,12 @@ export default function DocumentManagementPage() {
   const { enqueueSnackbar } = useSnackbar()
 
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false)
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false)
-  const [selectedDocument, setSelectedDocument] = useState<any>(null)
   const [documents, setDocuments] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [tags, setTags] = useState<any[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [isChangelogModalVisible, setIsChangelogModalVisible] = useState(false)
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -99,15 +100,9 @@ export default function DocumentManagementPage() {
     }
   }
 
-  const handleEditDocument = async (values: any) => {
-    try {
-      const updatedDocument = await updateDocument(selectedDocument.id, values)
-      enqueueSnackbar('Document updated successfully', { variant: 'success' })
-      setIsEditModalVisible(false)
-      setDocuments(documents.map(doc => doc.id === updatedDocument.id ? updatedDocument : doc))
-    } catch (error) {
-      enqueueSnackbar('Failed to update document', { variant: 'error' })
-    }
+  const handleOpenChangelogModal = (documentId: string) => {
+    setSelectedDocumentId(documentId)
+    setIsChangelogModalVisible(true)
   }
 
   const columns = [
@@ -154,16 +149,13 @@ export default function DocumentManagementPage() {
         <Space size="middle">
           <Button
             icon={<EditOutlined />}
-            onClick={() => {
-              setSelectedDocument(record)
-              setIsEditModalVisible(true)
-            }}
+            onClick={() => router.push(`/documents/${record.id}/edit`)}
           >
             Edit
           </Button>
           <Button
             icon={<HistoryOutlined />}
-            onClick={() => router.push(`/documents/${record.id}/edit`)}
+            onClick={() => handleOpenChangelogModal(record.id)}
           >
             Changelog
           </Button>
@@ -194,6 +186,11 @@ export default function DocumentManagementPage() {
 
   const handleTagChange = (value: string[]) => {
     setSelectedTags(value)
+  }
+
+  const fetchChangelogData = (documentId: string) => {
+    const document = documents.find(doc => doc.id === documentId)
+    return document ? document.versions : []
   }
 
   return (
@@ -268,29 +265,27 @@ export default function DocumentManagementPage() {
         </Modal>
 
         <Modal
-          title="Edit Document"
-          visible={isEditModalVisible}
-          onCancel={() => setIsEditModalVisible(false)}
-          footer={null}
+          title="Document Changelog"
+          visible={isChangelogModalVisible}
+          onCancel={() => setIsChangelogModalVisible(false)}
+          footer={[
+            <Button key="close" onClick={() => setIsChangelogModalVisible(false)}>
+              Close
+            </Button>
+          ]}
         >
-          <Form onFinish={handleEditDocument} initialValues={selectedDocument}>
-            <Form.Item
-              name="name"
-              rules={[
-                { required: true, message: 'Please input the document name!' },
-              ]}
-            >
-              <Input placeholder="Document Name" />
-            </Form.Item>
-            <Form.Item name="description">
-              <Input.TextArea placeholder="Description" />
-            </Form.Item>
-            <Form.Item>
-              <Button type="primary" htmlType="submit">
-                Update
-              </Button>
-            </Form.Item>
-          </Form>
+          <List
+            dataSource={selectedDocumentId ? fetchChangelogData(selectedDocumentId) : []}
+            renderItem={(item: any) => (
+              <List.Item>
+                <List.Item.Meta
+                  title={`Version ${item.versionNumber}`}
+                  description={`Created at: ${dayjs(item.createdAt).format('YYYY-MM-DD HH:mm')}`}
+                />
+                <div>{item.changes}</div>
+              </List.Item>
+            )}
+          />
         </Modal>
       </div>
     </PageLayout>

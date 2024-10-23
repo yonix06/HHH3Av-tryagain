@@ -10,7 +10,6 @@
     "github.vscode-github-actions",
     "gruntfuggly.todo-tree",
     "oderwat.indent-rainbow",
-    "bradlc.vscode-tailwindcss",
     "ms-vscode.vscode-typescript-next",
     "lokalise.i18n-ally",
     "prisma.prisma",
@@ -20,6 +19,9 @@
     "zenstack.zenstack",
     "christian-kohler.path-intellisense",
     "usernamehw.errorlens",
-    "pkief.material-icon-theme"
+    "pkief.material-icon-theme",
+    "nguyenoss.html-to-css-autocompletion",
+    "naumovs.color-highlight",
+    "alfredbirk.tailwind-documentation"
   ]
 }

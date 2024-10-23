@@ -18,7 +18,7 @@ export const LandingContainer: React.FC<Props> = ({
 }) => {
   return (
     <main {...props} className="dark">
-      <div className={'bg-white text-black dark:bg-black dark:text-slate-200'}>
+      <div className={'bg-white text-black dark:bg-slate-900 dark:text-slate-200'}>
         <LandingNavBar navItems={navItems} />
         {children}
 
