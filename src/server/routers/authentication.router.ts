@@ -172,6 +172,13 @@ export const AuthenticationRouter = Trpc.createRouter({
     .mutation(async ({ ctx, input }) => {
       const { organizationId, roleName = 'member' } = input
 
+      if (!organizationId) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'organizationId is required',
+        })
+      }
+
       const email = input.email.trim().toLowerCase()
 
       const organization = await ctx.database.organization.findUniqueOrThrow({

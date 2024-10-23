@@ -29,6 +29,38 @@ const check = () => {
 }
 
 export const AiRouter = Trpc.createRouter({
+  addLanguage: Trpc.procedure
+    .input(z.object({ languageCode: z.string() }))
+    .mutation(async ({ input }) => {
+      // Implementation for adding a language
+      // This is a placeholder and should be replaced with actual logic
+      return { success: true, message: `Language ${input.languageCode} added` }
+    }),
+
+  editLanguage: Trpc.procedure
+    .input(z.object({ oldLanguageCode: z.string(), newLanguageCode: z.string() }))
+    .mutation(async ({ input }) => {
+      // Implementation for editing a language
+      // This is a placeholder and should be replaced with actual logic
+      return { success: true, message: `Language ${input.oldLanguageCode} updated to ${input.newLanguageCode}` }
+    }),
+
+  removeLanguage: Trpc.procedure
+    .input(z.object({ languageCode: z.string() }))
+    .mutation(async ({ input }) => {
+      // Implementation for removing a language
+      // This is a placeholder and should be replaced with actual logic
+      return { success: true, message: `Language ${input.languageCode} removed` }
+    }),
+
+  updateUserLanguagePreference: Trpc.procedure
+    .input(z.object({ userId: z.string(), languageCode: z.string() }))
+    .mutation(async ({ input }) => {
+      // Implementation for updating user language preference
+      // This is a placeholder and should be replaced with actual logic
+      return { success: true, message: `User ${input.userId} language preference updated to ${input.languageCode}` }
+    }),
+
   generateText: Trpc.procedure
     .input(
       z.object({
