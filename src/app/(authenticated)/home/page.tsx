@@ -1,30 +1,51 @@
 'use client'
 
-import { Typography, Row, Col, Card, Calendar, List, Badge, theme, CalendarProps } from 'antd'
-import type { Dayjs } from 'antd'
+import { useUserContext } from '@/core/context'
+import { Api } from '@/core/trpc'
+import { PageLayout } from '@/designSystem'
+import { dummyDocuments, dummyValidations } from '@/utils/dummyData'
 import {
   BarChartOutlined,
   BellOutlined,
   CheckCircleOutlined,
   MessageOutlined,
 } from '@ant-design/icons'
+import {
+  Badge,
+  Calendar,
+  CalendarProps,
+  Card,
+  Col,
+  List,
+  Row,
+  theme,
+  Typography,
+} from 'antd'
+import dayjs, { Dayjs } from 'dayjs'
+import { useParams, useRouter } from 'next/navigation'
+import { useSnackbar } from 'notistack'
 const { Title, Text } = Typography
 const { useToken } = theme
-import { useUserContext } from '@/core/context'
-import { useRouter, useParams } from 'next/navigation'
-import { useUploadPublic } from '@/core/hooks/upload'
-import { useSnackbar } from 'notistack'
-import dayjs from 'dayjs'
-import { Api } from '@/core/trpc'
-import { PageLayout } from '@/designSystem'
-import { dummyDocuments, dummyValidations } from '@/utils/dummyData'
 
 const useDocuments = () => {
-  return { data: dummyDocuments.map(doc => ({...doc, versions: doc.versions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())})) }
+  return {
+    data: dummyDocuments.map(doc => ({
+      ...doc,
+      versions: doc.versions.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+    })),
+  }
 }
 
 const useValidations = () => {
-  return { data: dummyValidations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) }
+  return {
+    data: dummyValidations.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    ),
+  }
 }
 
 export default function HomePage() {
@@ -40,32 +61,37 @@ export default function HomePage() {
   const { data: validations } = useValidations()
 
   type Document = {
-    id: string;
-    name: string;
-    status: string;
-    tags: string[];
+    id: string
+    name: string
+    status: string
+    tags: string[]
     versions: Array<{
-      id: string;
-      versionNumber: number;
-      content: string;
-      createdAt: Date;
-    }>;
+      id: string
+      versionNumber: number
+      content: string
+      createdAt: Date
+    }>
   }
 
-  const getListData = (value: dayjs.Dayjs) => {
+  const getListData = (value: Dayjs) => {
     const listData = [
-      ...documents?.flatMap((doc: Document) =>
+      ...(documents?.flatMap((doc: Document) =>
         doc.versions.map(version => ({
           type: 'success',
           content: doc.name,
           date: dayjs(version.createdAt),
-        }))
-      ) || [],
-      ...validations?.map(validation => ({
-        type: validation.status === 'APPROVED' ? 'success' : validation.status === 'REJECTED' ? 'error' : 'warning',
+        })),
+      ) || []),
+      ...(validations?.map(validation => ({
+        type:
+          validation.status === 'APPROVED'
+            ? 'success'
+            : validation.status === 'REJECTED'
+              ? 'error'
+              : 'warning',
         content: `Validation: ${validation.comment}`,
         date: dayjs(validation.createdAt),
-      })) || [],
+      })) || []),
       {
         type: 'error',
         content: 'Urgent: Team Meeting',
@@ -81,10 +107,17 @@ export default function HomePage() {
     return listData
   }
 
-  const dateCellRender: CalendarProps<Dayjs>['dateCellRender'] = (value) => {
+  const dateCellRender: CalendarProps<Dayjs>['dateCellRender'] = value => {
     const listData = getListData(value)
     return (
-      <ul style={{ listStyle: 'none', padding: 0, maxHeight: '60px', overflowY: 'auto' }}>
+      <ul
+        style={{
+          listStyle: 'none',
+          padding: 0,
+          maxHeight: '60px',
+          overflowY: 'auto',
+        }}
+      >
         {listData.map((item, index) => (
           <li key={index} style={{ marginBottom: '1px' }}>
             <Badge
@@ -119,27 +152,20 @@ export default function HomePage() {
           <Card
             title={
               <>
-                <BarChartOutlined style={{ color: token.colorPrimary }} /> Analytics
+                <BarChartOutlined style={{ color: token.colorPrimary }} />{' '}
+                Analytics
               </>
             }
-            style={{ backgroundColor: token.colorBgContainer, cursor: 'pointer' }}
+            style={{
+              backgroundColor: token.colorBgContainer,
+              cursor: 'pointer',
+            }}
             onClick={() => router.push('/analytics')}
           >
-            <Text style={{ color: token.colorTextBase }}>Total Documents: {documents?.reduce((acc, doc) => acc + doc.versions.length, 0) || 0}</Text>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card
-            title={
-              <>
-                <BellOutlined style={{ color: token.colorPrimary }} /> Notifications
-              </>
-            }
-            style={{ backgroundColor: token.colorBgContainer, cursor: 'pointer' }}
-            onClick={() => router.push('/notifications')}
-          >
             <Text style={{ color: token.colorTextBase }}>
-              Pending: {documents?.filter((d: Document) => d.status === 'DRAFT').reduce((acc, doc) => acc + doc.versions.length, 0) || 0}
+              Total Documents:{' '}
+              {documents?.reduce((acc, doc) => acc + doc.versions.length, 0) ||
+                0}
             </Text>
           </Card>
         </Col>
@@ -147,10 +173,36 @@ export default function HomePage() {
           <Card
             title={
               <>
-                <CheckCircleOutlined style={{ color: token.colorPrimary }} /> Validations
+                <BellOutlined style={{ color: token.colorPrimary }} />{' '}
+                Notifications
               </>
             }
-            style={{ backgroundColor: token.colorBgContainer, cursor: 'pointer' }}
+            style={{
+              backgroundColor: token.colorBgContainer,
+              cursor: 'pointer',
+            }}
+            onClick={() => router.push('/notifications')}
+          >
+            <Text style={{ color: token.colorTextBase }}>
+              Pending:{' '}
+              {documents
+                ?.filter((d: Document) => d.status === 'DRAFT')
+                .reduce((acc, doc) => acc + doc.versions.length, 0) || 0}
+            </Text>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            title={
+              <>
+                <CheckCircleOutlined style={{ color: token.colorPrimary }} />{' '}
+                Validations
+              </>
+            }
+            style={{
+              backgroundColor: token.colorBgContainer,
+              cursor: 'pointer',
+            }}
             onClick={() => router.push('/validations')}
           >
             <Text style={{ color: token.colorTextBase }}>
@@ -163,10 +215,14 @@ export default function HomePage() {
           <Card
             title={
               <>
-                <MessageOutlined style={{ color: token.colorPrimary }} /> Messages
+                <MessageOutlined style={{ color: token.colorPrimary }} />{' '}
+                Messages
               </>
             }
-            style={{ backgroundColor: token.colorBgContainer, cursor: 'pointer' }}
+            style={{
+              backgroundColor: token.colorBgContainer,
+              cursor: 'pointer',
+            }}
             onClick={() => router.push('/messages')}
           >
             <Text style={{ color: token.colorTextBase }}>New Messages: 0</Text>
@@ -176,27 +232,45 @@ export default function HomePage() {
 
       <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
         <Col xs={24} lg={12}>
-          <Card title="Calendar" style={{ backgroundColor: token.colorBgContainer, height: '500px' }}>
+          <Card
+            title="Calendar"
+            style={{ backgroundColor: token.colorBgContainer, height: '500px' }}
+          >
             <Calendar fullscreen={false} dateCellRender={dateCellRender} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card title="Recent Document Requests" style={{ backgroundColor: token.colorBgContainer, height: '500px', maxHeight: '500px', overflowY: 'auto' }}>
+          <Card
+            title="Recent Document Requests"
+            style={{
+              backgroundColor: token.colorBgContainer,
+              height: '500px',
+              maxHeight: '500px',
+              overflowY: 'auto',
+            }}
+          >
             <List
               dataSource={documents
-                ?.flatMap((doc: Document) => 
+                ?.flatMap((doc: Document) =>
                   doc.versions.map(version => ({
                     status: doc.status,
                     createdAt: version.createdAt,
                     documentId: doc.id,
                     name: doc.name,
-                    versionNumber: version.versionNumber
-                  }))
+                    versionNumber: version.versionNumber,
+                  })),
                 )
-                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                .sort(
+                  (a, b) =>
+                    new Date(b.createdAt).getTime() -
+                    new Date(a.createdAt).getTime(),
+                )
                 .slice(0, 5)}
               renderItem={item => (
-                <List.Item onClick={() => router.push(`/documents/${item.documentId}`)} style={{ cursor: 'pointer' }}>
+                <List.Item
+                  onClick={() => router.push(`/documents/${item.documentId}`)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <Text style={{ color: token.colorTextBase }}>
                     {item.status}: {item.name} (v{item.versionNumber})
                   </Text>
