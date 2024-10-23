@@ -53,18 +53,32 @@ export default function OrganizationTeamPage() {
     data: users,
     isLoading: isLoadingUsers,
     refetch: refetchUsers,
+    error,
   } = Api.user.findMany.useQuery(
     {
       where: {
         organizationRoles: { some: { organizationId: organization.id } },
       },
       include: {
-        organizationRoles: { where: { organizationId: organization.id } },
+        organizationRoles: true,
       },
       orderBy: { createdAt: 'desc' },
     },
-    { initialData: [] },
+    {
+      initialData: [],
+      onError: (error) => {
+        enqueueSnackbar('Failed to load members. Please try again.', { variant: 'error' });
+      },
+    },
   )
+
+  if (error) {
+    return (
+      <PageLayout>
+        <Typography.Text type="danger">Error loading members. Please refresh the page.</Typography.Text>
+      </PageLayout>
+    );
+  }
 
   const { invite, isLoadingInvitation } = useInvitation({ organization, email })
 

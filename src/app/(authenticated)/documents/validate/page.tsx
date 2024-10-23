@@ -6,15 +6,15 @@ import {
   CloseOutlined,
   ExclamationCircleOutlined,
 } from '@ant-design/icons'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 const { Title, Text } = Typography
 import { useUserContext } from '@/core/context'
 import { useRouter, useParams } from 'next/navigation'
 import { useUploadPublic } from '@/core/hooks/upload'
 import { useSnackbar } from 'notistack'
 import dayjs from 'dayjs'
-import { Api } from '@/core/trpc'
 import { PageLayout } from '@/designSystem'
+import { dummyDocuments } from '@/utils/dummyData'
 
 export default function DocumentValidationPage() {
   const router = useRouter()
@@ -28,25 +28,50 @@ export default function DocumentValidationPage() {
     status: '',
   })
   const [feedback, setFeedback] = useState('')
+  const [pendingDocuments, setPendingDocuments] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const {
-    data: pendingDocuments,
-    isLoading,
-    refetch,
-  } = Api.documentVersion.findMany.useQuery({
-    where: {
-      validations: {
-        none: {
-          userId: user?.id,
-        },
-      },
-    },
-    include: {
-      document: true,
-    },
-  })
+  useEffect(() => {
+    // Simulate API call with dummy data
+    const fetchPendingDocuments = () => {
+      const pendingDocs = dummyDocuments.flatMap(doc =>
+        doc.versions.map(version => ({
+          id: version.id,
+          versionNumber: version.versionNumber,
+          createdAt: version.createdAt,
+          document: { name: doc.name },
+        }))
+      )
+      setPendingDocuments(pendingDocs)
+      setIsLoading(false)
+    }
 
-  const { mutateAsync: createValidation } = Api.validation.create.useMutation()
+    fetchPendingDocuments()
+  }, [])
+
+  const refetch = () => {
+    // Simulating refetch by re-running the effect
+    setIsLoading(true)
+    setPendingDocuments([])
+    const fetchPendingDocuments = () => {
+      const pendingDocs = dummyDocuments.flatMap(doc =>
+        doc.versions.map(version => ({
+          id: version.id,
+          versionNumber: version.versionNumber,
+          createdAt: version.createdAt,
+          document: { name: doc.name },
+        }))
+      )
+      setPendingDocuments(pendingDocs)
+      setIsLoading(false)
+    }
+    fetchPendingDocuments()
+  }
+
+  const createValidation = async (data: any) => {
+    // Simulating API call
+    return new Promise(resolve => setTimeout(resolve, 500))
+  }
 
   const handleValidation = async (
     documentVersionId: string,

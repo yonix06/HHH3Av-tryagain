@@ -5,56 +5,41 @@ import { Typography, Form, Input, Button, Modal, Space } from 'antd'
 import { FileTextOutlined, QuestionCircleOutlined } from '@ant-design/icons'
 const { Title, Paragraph } = Typography
 import { useUserContext } from '@/core/context'
-import { useRouter, useParams } from 'next/navigation'
-import { useUploadPublic } from '@/core/hooks/upload'
+import { useRouter } from 'next/navigation'
 import { useSnackbar } from 'notistack'
-import dayjs from 'dayjs'
-import { Api } from '@/core/trpc'
 import { PageLayout } from '@/designSystem'
-import { Prisma } from '@prisma/client'
+import { v4 as uuidv4 } from 'uuid'
 
 export default function DocumentRequestPage() {
   const router = useRouter()
   const { user, organization } = useUserContext()
   const { enqueueSnackbar } = useSnackbar()
   const [isModalVisible, setIsModalVisible] = useState(false)
+  const [dummyDocuments, setDummyDocuments] = useState<any[]>([])
 
   const [form] = Form.useForm()
 
-  const { mutateAsync: createDocumentRequest } =
-    Api.documentRequest.create.useMutation()
-
-  const onFinish = async (values: any) => {
-    try {
-      if (!user?.id || !organization?.id) {
-        enqueueSnackbar('User or organization not found', { variant: 'error' })
-        return
-      }
-
-      const documentRequestData: Prisma.DocumentRequestCreateInput = {
-        status: 'PENDING',
-        user: { connect: { id: user.id } },
-        document: {
-          create: {
-            name: values.documentName,
-            description: values.documentDescription,
-            userId: user.id,
-            organizationId: organization.id,
-          },
-        },
-      }
-
-      await createDocumentRequest({
-        data: documentRequestData,
-      })
-
-      enqueueSnackbar('Document request submitted successfully', {
-        variant: 'success',
-      })
-      router.push('/documents')
-    } catch (error) {
-      enqueueSnackbar('Failed to submit document request', { variant: 'error' })
+  const onFinish = (values: any) => {
+    if (!user?.id || !organization?.id) {
+      enqueueSnackbar('User or organization not found', { variant: 'error' })
+      return
     }
+
+    const newDocument = {
+      id: uuidv4(),
+      name: values.documentName,
+      description: values.documentDescription,
+      status: 'PENDING',
+      userId: user.id,
+      organizationId: organization.id,
+    }
+
+    setDummyDocuments([...dummyDocuments, newDocument])
+
+    enqueueSnackbar('Document request submitted successfully', {
+      variant: 'success',
+    })
+    form.resetFields()
   }
 
   const showModal = () => {

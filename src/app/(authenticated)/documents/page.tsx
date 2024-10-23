@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Typography,
   Table,
@@ -27,6 +27,7 @@ import { useSnackbar } from 'notistack'
 import dayjs from 'dayjs'
 import { Api } from '@/core/trpc'
 import { PageLayout } from '@/designSystem'
+import { dummyDocuments, dummyTags } from '@/utils/dummyData'
 
 export default function DocumentManagementPage() {
   const router = useRouter()
@@ -37,38 +38,83 @@ export default function DocumentManagementPage() {
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false)
   const [isEditModalVisible, setIsEditModalVisible] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState<any>(null)
+  const [documents, setDocuments] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [tags, setTags] = useState<any[]>([])
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
 
-  const {
-    data: documents,
-    isLoading,
-    refetch,
-  } = Api.document.findMany.useQuery({
-    where: { organizationId: organization?.id },
+  const { data: fetchedDocuments, refetch: refetchDocuments } = Api.document.findMany.useQuery({
+    where: organization?.id ? { organizationId: organization.id } : {},
     include: {
       documentVersions: true,
       documentTags: { include: { tag: true } },
     },
+  }, {
+    enabled: true,
   })
 
   const { data: templates } = Api.documentTemplate.findMany.useQuery({
     where: { organizationId: organization?.id },
   })
 
-  const { mutateAsync: createDocument } = Api.document.create.useMutation()
-  const { mutateAsync: updateDocument } = Api.document.update.useMutation()
+  const { data: fetchedTags } = Api.tag.findMany.useQuery({
+    where: organization?.id ? { organizationId: organization.id } : {},
+  })
+
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        await refetchDocuments()
+        setDocuments(fetchedDocuments || dummyDocuments)
+        setTags(fetchedTags || dummyTags)
+      } catch (error) {
+        console.error('Error fetching documents:', error)
+        setDocuments(dummyDocuments)
+        setTags(dummyTags)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDocuments()
+  }, [organization?.id, refetchDocuments, fetchedDocuments, fetchedTags])
+
+  const filteredDocuments = documents.filter(doc =>
+    selectedTags.length === 0 || doc.documentTags.some(dt => selectedTags.includes(dt.tag.id))
+  )
+
+  const createDocument = async (values: any) => {
+    // Simulating document creation with dummy data
+    const newDocument = {
+      id: Math.random().toString(36).substr(2, 9),
+      ...values,
+      status: 'DRAFT',
+      tags: [],
+      versions: [],
+    }
+    setDocuments([...documents, newDocument])
+    return newDocument
+  }
+
+  const updateDocument = async (id: string, values: any) => {
+    // Simulating document update with dummy data
+    const updatedDocuments = documents.map(doc =>
+      doc.id === id ? { ...doc, ...values } : doc
+    )
+    setDocuments(updatedDocuments)
+    return updatedDocuments.find(doc => doc.id === id)
+  }
 
   const handleCreateDocument = async (values: any) => {
     try {
-      await createDocument({
-        data: {
-          ...values,
-          userId: user?.id,
-          organizationId: organization?.id,
-        },
+      const newDocument = await createDocument({
+        ...values,
+        userId: user?.id,
+        organizationId: organization?.id,
       })
       enqueueSnackbar('Document created successfully', { variant: 'success' })
       setIsCreateModalVisible(false)
-      refetch()
+      setDocuments([...documents, newDocument])
     } catch (error) {
       enqueueSnackbar('Failed to create document', { variant: 'error' })
     }
@@ -76,13 +122,10 @@ export default function DocumentManagementPage() {
 
   const handleEditDocument = async (values: any) => {
     try {
-      await updateDocument({
-        where: { id: selectedDocument.id },
-        data: values,
-      })
+      const updatedDocument = await updateDocument(selectedDocument.id, values)
       enqueueSnackbar('Document updated successfully', { variant: 'success' })
       setIsEditModalVisible(false)
-      refetch()
+      setDocuments(documents.map(doc => doc.id === updatedDocument.id ? updatedDocument : doc))
     } catch (error) {
       enqueueSnackbar('Failed to update document', { variant: 'error' })
     }
@@ -99,9 +142,10 @@ export default function DocumentManagementPage() {
       dataIndex: 'status',
       key: 'status',
       render: (_: any, record: any) => {
-        const latestVersion =
-          record.documentVersions[record.documentVersions.length - 1]
-        return latestVersion ? 'Published' : 'Draft'
+        const latestVersion = record.documentVersions && record.documentVersions.length > 0
+          ? record.documentVersions[record.documentVersions.length - 1]
+          : null;
+        return latestVersion ? 'Published' : 'Draft';
       },
     },
     {
@@ -111,7 +155,7 @@ export default function DocumentManagementPage() {
       render: (tags: any[]) => (
         <>
           {tags?.map(tag => (
-            <Tag color="blue" key={tag.tag.id}>
+            <Tag color={tag.tag.color} key={tag.tag.id}>
               {tag.tag.name}
             </Tag>
           ))}
@@ -172,6 +216,10 @@ export default function DocumentManagementPage() {
     },
   ]
 
+  const handleTagChange = (value: string[]) => {
+    setSelectedTags(value)
+  }
+
   return (
     <PageLayout layout="full-width">
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px' }}>
@@ -179,18 +227,33 @@ export default function DocumentManagementPage() {
         <Text>Manage your documents, their statuses, tags, and versions.</Text>
 
         <div style={{ marginTop: '20px', marginBottom: '20px' }}>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setIsCreateModalVisible(true)}
-          >
-            Create New Document
-          </Button>
+          <Space>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setIsCreateModalVisible(true)}
+            >
+              Create New Document
+            </Button>
+            <Select
+              mode="multiple"
+              style={{ width: '300px' }}
+              placeholder="Filter by tags"
+              onChange={handleTagChange}
+              value={selectedTags}
+            >
+              {tags.map(tag => (
+                <Select.Option key={tag.id} value={tag.id}>
+                  {tag.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Space>
         </div>
 
         <Table
           columns={columns}
-          dataSource={documents}
+          dataSource={filteredDocuments}
           loading={isLoading}
           rowKey="id"
         />

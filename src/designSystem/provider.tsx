@@ -31,8 +31,6 @@ const ProviderGeneral = ({ children }) => {
 
   const isWindow = typeof window !== 'undefined'
 
-  const theme = Theme as any
-
   useEffect(() => {
     if (!isWindow) {
       return
@@ -71,7 +69,7 @@ const ProviderGeneral = ({ children }) => {
   }, [])
 
   return (
-    <ConfigProvider theme={theme}>
+    <ConfigProvider theme={Theme({})}>
       <DesignSystemContext.Provider value={{ isMobile }}>
         {children}
       </DesignSystemContext.Provider>

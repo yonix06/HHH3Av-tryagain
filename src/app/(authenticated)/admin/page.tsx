@@ -11,6 +11,8 @@ import {
   Input,
   Select,
   Space,
+  ColorPicker,
+  Tag,
 } from 'antd'
 import {
   UserOutlined,
@@ -18,6 +20,7 @@ import {
   BarChartOutlined,
   FileTextOutlined,
   TagsOutlined,
+  BgColorsOutlined,
 } from '@ant-design/icons'
 import { useState } from 'react'
 const { Title, Text } = Typography
@@ -29,6 +32,7 @@ import { useSnackbar } from 'notistack'
 import dayjs from 'dayjs'
 import { Api } from '@/core/trpc'
 import { PageLayout } from '@/designSystem'
+import { dummyTags } from '@/utils/dummyData'
 
 export default function AdminPanelPage() {
   const router = useRouter()
@@ -46,11 +50,9 @@ export default function AdminPanelPage() {
     where: { organizationId: organization?.id },
   })
   const { data: templates } = Api.documentTemplate.findMany.useQuery({
-    where: { organizationId: organization?.id },
+    where: organization?.id ? { organizationId: organization.id } : {},
   })
-  const { data: tags } = Api.tag.findMany.useQuery({
-    where: { organizationId: organization?.id },
-  })
+  const tags = dummyTags
 
   const { mutateAsync: updateUser } = Api.user.update.useMutation()
   const { mutateAsync: updateOrganization } =
@@ -79,6 +81,19 @@ export default function AdminPanelPage() {
       setIsModalVisible(false)
     } catch (error) {
       enqueueSnackbar('Failed to update settings', { variant: 'error' })
+    }
+  }
+
+  const handleUpdateTheme = async (values: any) => {
+    try {
+      await updateOrganization({
+        where: { id: organization?.id },
+        data: { theme: values },
+      })
+      enqueueSnackbar('Theme settings updated successfully', { variant: 'success' })
+      setIsModalVisible(false)
+    } catch (error) {
+      enqueueSnackbar('Failed to update theme settings', { variant: 'error' })
     }
   }
 
@@ -238,11 +253,24 @@ export default function AdminPanelPage() {
                 dataSource={tags}
                 renderItem={item => (
                   <List.Item>
-                    <List.Item.Meta title={item.name} />
+                    <Tag color={item.color}>{item.name}</Tag>
                   </List.Item>
                 )}
               />
             </Space>
+          </TabPane>
+          <TabPane
+            tab={
+              <span>
+                <BgColorsOutlined />
+                Theme Settings
+              </span>
+            }
+            key="6"
+          >
+            <Button onClick={() => showModal('theme')}>
+              Edit Theme Settings
+            </Button>
           </TabPane>
         </Tabs>
       </Card>
@@ -309,9 +337,36 @@ export default function AdminPanelPage() {
             <Form.Item name="name" label="Tag Name">
               <Input />
             </Form.Item>
+            <Form.Item name="color" label="Tag Color">
+              <ColorPicker />
+            </Form.Item>
             <Form.Item>
               <Button type="primary" htmlType="submit">
                 Create Tag
+              </Button>
+            </Form.Item>
+          </Form>
+        )}
+        {modalType === 'theme' && (
+          <Form onFinish={handleUpdateTheme}>
+            <Form.Item name={['colors', 'primary']} label="Primary Color">
+              <ColorPicker />
+            </Form.Item>
+            <Form.Item name={['colors', 'secondary']} label="Secondary Color">
+              <ColorPicker />
+            </Form.Item>
+            <Form.Item name={['typography', 'fontSize']} label="Font Size">
+              <Input type="number" />
+            </Form.Item>
+            <Form.Item name={['typography', 'fontFamily']} label="Font Family">
+              <Input />
+            </Form.Item>
+            <Form.Item name={['layout', 'containerWidth']} label="Container Width">
+              <Input />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                Update Theme
               </Button>
             </Form.Item>
           </Form>
