@@ -11,6 +11,7 @@ import {
   Button,
   List,
   Flex,
+  Spin,
 } from 'antd'
 
 import { useState, useEffect } from 'react'
@@ -43,23 +44,35 @@ export default function AdminPanelPage() {
 
 const { data: users, refetch: refetchUsers, isLoading: isLoadingUsers, error: usersError } = Api.user.findMany.useQuery({
   include: { organizationRoles: { include: { organization: true } } }
+}, {
+  onError: (error) => enqueueSnackbar(`Error fetching users: ${error.message}`, { variant: 'error' })
 })
   const { data: userOrganizations, refetch: refetchUserOrganizations, isLoading: isLoadingUserOrganizations, error: userOrganizationsError } = Api.organizationRole.findMany.useQuery({
     where: { userId: user?.id },
     include: { organization: true },
+  }, {
+    onError: (error) => enqueueSnackbar(`Error fetching user organizations: ${error.message}`, { variant: 'error' })
   });
   const { data: settings, isLoading: isLoadingSettings, error: settingsError } = Api.organization.findUnique.useQuery({
     where: { id: organization?.id },
+  }, {
+    onError: (error) => enqueueSnackbar(`Error fetching settings: ${error.message}`, { variant: 'error' })
   })
   const { data: documents, isLoading: isLoadingDocuments, error: documentsError } = Api.document.findMany.useQuery({
     where: { organizationId: organization?.id },
+  }, {
+    onError: (error) => enqueueSnackbar(`Error fetching documents: ${error.message}`, { variant: 'error' })
   })
   const { data: templates, isLoading: isLoadingTemplates, error: templatesError } = Api.documentTemplate.findMany.useQuery({
     where: organization?.id ? { organizationId: organization.id } : {},
+  }, {
+    onError: (error) => enqueueSnackbar(`Error fetching templates: ${error.message}`, { variant: 'error' })
   })
 const { data: tags, isLoading: isLoadingTags, error: tagsError } = Api.tag.findMany.useQuery({
   where: { organizationId: organization?.id },
   select: { id: true, name: true, color: true }
+}, {
+  onError: (error) => enqueueSnackbar(`Error fetching tags: ${error.message}`, { variant: 'error' })
 })
   const [languages, setLanguages] = useState<string[]>(getLanguages())
 
@@ -93,11 +106,6 @@ const { data: tags, isLoading: isLoadingTags, error: tagsError } = Api.tag.findM
     fetchData();
   }, [organization])
 
-  useEffect(() => {
-    if (usersError || userOrganizationsError || settingsError || documentsError || templatesError || tagsError) {
-      enqueueSnackbar('Error loading data. Please try again.', { variant: 'error' });
-    }
-  }, [usersError, userOrganizationsError, settingsError, documentsError, templatesError, tagsError])
 
   const handleUpdateUser = async (values: any) => {
     try {
@@ -218,7 +226,7 @@ const { data: tags, isLoading: isLoadingTags, error: tagsError } = Api.tag.findM
 
   const renderContent = () => {
     if (isLoading || isLoadingUsers || isLoadingUserOrganizations || isLoadingSettings || isLoadingDocuments || isLoadingTemplates || isLoadingTags) {
-      return <div>Loading...</div>;
+      return <Spin size="large" />;
     }
 
     switch (activeMenuKey) {

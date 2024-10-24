@@ -2,6 +2,7 @@
 
 import { useUserContext } from '@/core/context'
 import { Api } from '@/core/trpc'
+import { useApiQuery } from '@/core/hooks/useApiQuery'
 import { PageLayout } from '@/designSystem'
 import {
   BarChartOutlined,

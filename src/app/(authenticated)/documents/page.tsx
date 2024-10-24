@@ -50,7 +50,7 @@ export default function DocumentManagementPage() {
   const [isChangelogModalVisible, setIsChangelogModalVisible] = useState(false)
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null)
 
-  const { data: documents, isLoading, error } = Api.document.findMany.useQuery({
+  const { data: documents, isLoading: isLoadingDocuments, error: documentsError } = Api.document.findMany.useQuery({
     where: { organizationId: organization?.id },
     include: { 
       documentTags: { include: { tag: true } }, 
@@ -59,15 +59,18 @@ export default function DocumentManagementPage() {
     },
   })
 
-  const { data: tags } = Api.tag.findMany.useQuery({
+  const { data: tags, isLoading: isLoadingTags, error: tagsError } = Api.tag.findMany.useQuery({
     where: { organizationId: organization?.id },
   })
 
   useEffect(() => {
-    if (error) {
-      enqueueSnackbar('Error fetching documents', { variant: 'error' })
+    if (documentsError) {
+      enqueueSnackbar('Error fetching documents: ' + documentsError.message, { variant: 'error' })
     }
-  }, [error, enqueueSnackbar])
+    if (tagsError) {
+      enqueueSnackbar('Error fetching tags: ' + tagsError.message, { variant: 'error' })
+    }
+  }, [documentsError, tagsError, enqueueSnackbar])
 
   const filteredDocuments = documents?.filter((doc: Document) =>
     selectedTags.length === 0 || doc.documentTags.some(dt => selectedTags.includes(dt.tag.id))
@@ -180,6 +183,17 @@ export default function DocumentManagementPage() {
     })) : []
   }
 
+  if (isLoadingDocuments || isLoadingTags) {
+    return (
+      <PageLayout layout="full-width">
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px' }}>
+          <Title level={2}>Document Management</Title>
+          <Text>Loading...</Text>
+        </div>
+      </PageLayout>
+    )
+  }
+
   return (
     <PageLayout layout="full-width">
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px' }}>
@@ -214,7 +228,7 @@ export default function DocumentManagementPage() {
         <Table
           columns={columns}
           dataSource={filteredDocuments as Document[]}
-          loading={isLoading}
+          loading={isLoadingDocuments}
           rowKey="id"
         />
 
