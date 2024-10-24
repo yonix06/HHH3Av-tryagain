@@ -14,7 +14,7 @@ const defaultColors = {
   link: '#005E8A',
   bgBase: 'linear-gradient(to bottom right, rgb(2 8 20), rgb(9 19 48))',
   bgContainer:
-    'linear-gradient(to top, rgba(255 255 255 / 0), rgba(87 111 219 / 0.49))',
+    'linear-gradient(to top, rgba(255 255 255 / 0), rgba(255 255 255 / 0.1))',
   border: '#9A9AA7',
   borderSecondary: '#7A7A80',
   split: 'rgba(255, 255, 255, 0.07)',
