@@ -4,6 +4,7 @@ model Tag {
 
     id                String        @id @default(uuid())  
     name            String          
+    color           String?         
 
 organizationId  String          
     organization  Organization?  @relation(fields: [organizationId], references: [id], name:"organization")  
@@ -49,12 +50,16 @@ model Document {
     id                String        @id @default(uuid())  
     name            String          
     description  String?          
+    url           String?         
 
 userId        String          
     user            User?            @relation(fields: [userId], references: [id], name:"user")  
     organizationId  String          
     organization  Organization?  @relation(fields: [organizationId], references: [id], name:"organization")  
  
+    status        Status?         @relation(fields: [statusId], references: [id])
+    statusId      String?
+
     documentVersions  DocumentVersion[]  @relation("document")  
     documentRequests  DocumentRequest[]  @relation("document")  
     documentTags  DocumentTag[]  @relation("document")  
@@ -63,11 +68,22 @@ userId        String
       @@allow("all", true)
 }
 
+
+model Status {
+    id          String    @id @default(uuid())
+    name        String
+    documents   Document[]
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt @default(now())
+    @@allow("all", true)
+}
+
 model DocumentVersion {
 
     id                String        @id @default(uuid())  
     versionNumber  Float            
-    contentUrl  String?          
+    url  String          @default("")
+    changes      Change[]         
  
     documentId  String          
     document    Document?    @relation(fields: [documentId], references: [id], name:"document")  
@@ -77,7 +93,15 @@ validations  Validation[]  @relation("documentVersion")
       updatedAt DateTime @updatedAt  @default(now())
       @@allow("all", true)
 }
-
+model Change {
+    id              String          @id @default(uuid())
+    description     String
+    documentVersion DocumentVersion @relation(fields: [documentVersionId], references: [id])
+    documentVersionId String
+    createdAt       DateTime        @default(now())
+    updatedAt       DateTime        @updatedAt @default(now())
+    @@allow("all", true)
+}
 model DocumentRequest {
 
     id                String        @id @default(uuid())  

@@ -14,7 +14,8 @@ import { useUploadPublic } from '@/core/hooks/upload'
 import { useSnackbar } from 'notistack'
 import dayjs from 'dayjs'
 import { PageLayout } from '@/designSystem'
-import { dummyDocuments, dummyValidations } from '@/utils/dummyData'
+import { Api } from '@/core/trpc'
+import { Prisma } from '@prisma/client'
 
 export default function DocumentValidationPage() {
   const router = useRouter()
@@ -28,55 +29,23 @@ export default function DocumentValidationPage() {
     status: '',
   })
   const [feedback, setFeedback] = useState('')
-  const [pendingDocuments, setPendingDocuments] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+
+  type Document = Prisma.DocumentGetPayload<{
+    include: { documentVersions: true; status: true }
+  }>
+
+  const { data: pendingDocuments, isLoading, error, refetch } = Api.document.findMany.useQuery({
+    where: { status: { name: 'PENDING' } },
+    include: { documentVersions: true, status: true },
+  })
+
+  const { mutateAsync: createValidation } = Api.validation.create.useMutation()
 
   useEffect(() => {
-    const fetchPendingDocuments = () => {
-      const pendingDocs = dummyDocuments.flatMap(doc =>
-        doc.versions.map(version => ({
-          id: version.id,
-          versionNumber: version.versionNumber,
-          createdAt: version.createdAt,
-          document: { name: doc.name, id: doc.id },
-        }))
-      )
-      setPendingDocuments(pendingDocs)
-      setIsLoading(false)
+    if (error) {
+      enqueueSnackbar('Error fetching documents', { variant: 'error' })
     }
-
-    fetchPendingDocuments()
-  }, [])
-
-  const refetch = () => {
-    // Simulating refetch by re-running the effect
-    setIsLoading(true)
-    setPendingDocuments([])
-    const fetchPendingDocuments = () => {
-      const pendingDocs = dummyDocuments.flatMap(doc =>
-        doc.versions.map(version => ({
-          id: version.id,
-          versionNumber: version.versionNumber,
-          createdAt: version.createdAt,
-          document: { name: doc.name },
-        }))
-      )
-      setPendingDocuments(pendingDocs)
-      setIsLoading(false)
-    }
-    fetchPendingDocuments()
-  }
-
-  const createValidation = async (data: any) => {
-    const newValidation = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...data.data,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
-    dummyValidations.push(newValidation)
-    return Promise.resolve(newValidation)
-  }
+  }, [error, enqueueSnackbar])
 
   const handleValidation = async (
     documentVersionId: string,
@@ -115,37 +84,45 @@ export default function DocumentValidationPage() {
   const columns = [
     {
       title: 'Document Name',
-      dataIndex: ['document', 'name'],
+      dataIndex: ['name'],
       key: 'name',
     },
     {
       title: 'Version',
-      dataIndex: 'versionNumber',
+      dataIndex: ['documentVersions', '0', 'versionNumber'],
       key: 'version',
-      render: (version: number) => version.toString(),
+      render: (version: number | undefined) => version?.toString() ?? 'N/A',
     },
     {
       title: 'Created At',
-      dataIndex: 'createdAt',
+      dataIndex: ['documentVersions', '0', 'createdAt'],
       key: 'createdAt',
-      render: (date: string) => dayjs(date).format('YYYY-MM-DD HH:mm'),
+      render: (date: string | undefined) => date ? dayjs(date).format('YYYY-MM-DD HH:mm') : 'N/A',
+    },
+    {
+      title: 'Status',
+      dataIndex: ['status', 'name'],
+      key: 'status',
+      render: (status: string | undefined) => status ?? 'N/A',
     },
     {
       title: 'Actions',
       key: 'actions',
-      render: (_: any, record: any) => (
+      render: (_: any, record: Document) => (
         <Space>
           <Button
             type="primary"
             icon={<CheckOutlined />}
-            onClick={() => handleValidation(record.id, 'APPROVED')}
+            onClick={() => record.documentVersions[0]?.id && handleValidation(record.documentVersions[0].id, 'APPROVED')}
+            disabled={!record.documentVersions[0]?.id}
           >
             Approve
           </Button>
           <Button
             danger
             icon={<CloseOutlined />}
-            onClick={() => handleValidation(record.id, 'REJECTED')}
+            onClick={() => record.documentVersions[0]?.id && handleValidation(record.documentVersions[0].id, 'REJECTED')}
+            disabled={!record.documentVersions[0]?.id}
           >
             Reject
           </Button>
@@ -161,7 +138,7 @@ export default function DocumentValidationPage() {
         <Text>Review and validate pending documents.</Text>
 
         <Table
-          dataSource={pendingDocuments}
+          dataSource={pendingDocuments as Document[]}
           columns={columns}
           rowKey="id"
           loading={isLoading}

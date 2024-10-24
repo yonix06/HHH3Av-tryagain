@@ -5,7 +5,9 @@ import createTagRouter from "./Tag.router";
 import createEmailListRouter from "./EmailList.router";
 import createDocumentTemplateRouter from "./DocumentTemplate.router";
 import createDocumentRouter from "./Document.router";
+import createStatusRouter from "./Status.router";
 import createDocumentVersionRouter from "./DocumentVersion.router";
+import createChangeRouter from "./Change.router";
 import createDocumentRequestRouter from "./DocumentRequest.router";
 import createValidationRouter from "./Validation.router";
 import createDocumentTagRouter from "./DocumentTag.router";
@@ -20,7 +22,9 @@ import { ClientType as TagClientType } from "./Tag.router";
 import { ClientType as EmailListClientType } from "./EmailList.router";
 import { ClientType as DocumentTemplateClientType } from "./DocumentTemplate.router";
 import { ClientType as DocumentClientType } from "./Document.router";
+import { ClientType as StatusClientType } from "./Status.router";
 import { ClientType as DocumentVersionClientType } from "./DocumentVersion.router";
+import { ClientType as ChangeClientType } from "./Change.router";
 import { ClientType as DocumentRequestClientType } from "./DocumentRequest.router";
 import { ClientType as ValidationClientType } from "./Validation.router";
 import { ClientType as DocumentTagClientType } from "./DocumentTag.router";
@@ -59,7 +63,9 @@ export function createRouter<Config extends BaseConfig>(router: RouterFactory<Co
         emailList: createEmailListRouter(router, procedure),
         documentTemplate: createDocumentTemplateRouter(router, procedure),
         document: createDocumentRouter(router, procedure),
+        status: createStatusRouter(router, procedure),
         documentVersion: createDocumentVersionRouter(router, procedure),
+        change: createChangeRouter(router, procedure),
         documentRequest: createDocumentRequestRouter(router, procedure),
         validation: createValidationRouter(router, procedure),
         documentTag: createDocumentTagRouter(router, procedure),
@@ -79,7 +85,9 @@ export interface ClientType<AppRouter extends AnyRouter> {
     emailList: EmailListClientType<AppRouter>;
     documentTemplate: DocumentTemplateClientType<AppRouter>;
     document: DocumentClientType<AppRouter>;
+    status: StatusClientType<AppRouter>;
     documentVersion: DocumentVersionClientType<AppRouter>;
+    change: ChangeClientType<AppRouter>;
     documentRequest: DocumentRequestClientType<AppRouter>;
     validation: ValidationClientType<AppRouter>;
     documentTag: DocumentTagClientType<AppRouter>;

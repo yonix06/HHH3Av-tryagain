@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Typography, Select, Space, Card } from 'antd'
+import { Typography, Select, Space, Card, Spin } from 'antd'
 import { EnvironmentOutlined } from '@ant-design/icons'
 import MapboxGeocoder, {
   GeocodeService,
@@ -27,15 +27,13 @@ export default function CartographyPage() {
   const mapContainer = useRef(null)
   const [geocodingClient, setGeocodingClient] = useState<GeocodeService>()
   const [map, setMap] = useState<Map>()
-  const [tags, setTags] = useState<any[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [documents, setDocuments] = useState<any[]>([])
 
-  const { data: secrets } = Api.configuration.getPublic.useQuery()
-  const { data: tagsData } = Api.tag.findMany.useQuery({
+  const { data: secrets, isLoading: isLoadingSecrets } = Api.configuration.getPublic.useQuery()
+  const { data: tags, isLoading: isLoadingTags, error: tagsError } = Api.tag.findMany.useQuery({
     where: { organizationId: organization?.id },
   })
-  const { data: documentsData } = Api.document.findMany.useQuery({
+  const { data: documents, isLoading: isLoadingDocuments, error: documentsError } = Api.document.findMany.useQuery({
     where: { organizationId: organization?.id },
     include: {
       documentTags: { include: { tag: true } },
@@ -44,13 +42,21 @@ export default function CartographyPage() {
   })
 
   useEffect(() => {
-    if (tagsData) setTags(tagsData)
-    if (documentsData) setDocuments(documentsData)
-  }, [tagsData, documentsData])
+    if (tagsError) {
+      enqueueSnackbar('Error loading tags', { variant: 'error' })
+    }
+    if (documentsError) {
+      enqueueSnackbar('Error loading documents', { variant: 'error' })
+    }
+  }, [tagsError, documentsError, enqueueSnackbar])
 
   useEffect(() => {
-    const accessToken = secrets?.['PUBLIC_MAPBOX_ACCESS_TOKEN']
-    if (!accessToken) return
+    if (!secrets || isLoadingSecrets) return
+    const accessToken = secrets['PUBLIC_MAPBOX_ACCESS_TOKEN']
+    if (!accessToken) {
+      enqueueSnackbar('Mapbox access token not found', { variant: 'error' })
+      return
+    }
 
     mapboxgl.accessToken = accessToken
     const geocodingClient = MapboxGeocoder(mapboxgl)
@@ -66,10 +72,10 @@ export default function CartographyPage() {
     setMap(map)
 
     return () => map.remove()
-  }, [secrets])
+  }, [secrets, isLoadingSecrets, enqueueSnackbar])
 
   useEffect(() => {
-    if (!map || !documents) return
+    if (!map || !documents || isLoadingDocuments) return
 
     map.on('load', () => {
       documents.forEach(doc => {
@@ -106,12 +112,25 @@ export default function CartographyPage() {
                 .addTo(map)
             }
           })
+          .catch(error => {
+            enqueueSnackbar(`Error geocoding document: ${doc.name}`, { variant: 'error' })
+          })
       })
     })
-  }, [map, documents, selectedTags, geocodingClient])
+  }, [map, documents, selectedTags, geocodingClient, isLoadingDocuments, enqueueSnackbar])
 
   const handleTagChange = (value: string[]) => {
     setSelectedTags(value)
+  }
+
+  if (isLoadingTags || isLoadingDocuments || isLoadingSecrets) {
+    return (
+      <PageLayout layout="full-width">
+        <Card>
+          <Spin size="large" />
+        </Card>
+      </PageLayout>
+    )
   }
 
   return (

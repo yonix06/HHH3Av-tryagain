@@ -30,23 +30,13 @@ export default function DocumentEditorPage() {
   const { enqueueSnackbar } = useSnackbar()
   const { mutateAsync: upload } = useUploadPublic()
 
-  const [document, setDocument] = useState<(Prisma.DocumentGetPayload<{
-    include: {
-      documentVersions: true
-      documentTags: { include: { tag: true } }
-      user: true
-    }
-  }> & { user: { name: string } }) | null>(null)
   const [content, setContent] = useState('')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [tags, setTags] = useState<string[]>([])
-  const [availableTags, setAvailableTags] = useState<
-    { id: string; name: string }[]
-  >([])
   const [isVersionModalVisible, setIsVersionModalVisible] = useState(false)
 
-  const { data: documentData, isLoading: isDocumentLoading } =
+  const { data: document, isLoading: isDocumentLoading, refetch: refetchDocument } =
     Api.document.findUnique.useQuery({
       where: { id: params.documentId },
       include: {
@@ -56,7 +46,7 @@ export default function DocumentEditorPage() {
       },
     })
 
-  const { data: tagsData } = Api.tag.findMany.useQuery({})
+  const { data: availableTags } = Api.tag.findMany.useQuery({})
 
   const updateDocumentMutation = Api.document.update.useMutation()
   const createDocumentVersionMutation = Api.documentVersion.create.useMutation()
@@ -64,31 +54,26 @@ export default function DocumentEditorPage() {
   const deleteDocumentTagMutation = Api.documentTag.delete.useMutation()
 
   useEffect(() => {
-    if (documentData) {
-      setDocument(documentData)
-      setName(documentData.name)
-      setDescription(documentData.description || '')
-      setTags(documentData.documentTags.map(dt => dt.tag.name))
+    if (document) {
+      setName(document.name)
+      setDescription(document.description || '')
+      setTags(document.documentTags.map(dt => dt.tag.name))
       const latestVersion =
-        documentData.documentVersions[documentData.documentVersions.length - 1]
-      if (latestVersion && latestVersion.contentUrl) {
-        fetch(latestVersion.contentUrl)
+        document.documentVersions[document.documentVersions.length - 1]
+      if (latestVersion && latestVersion.url) {
+        fetch(latestVersion.url)
           .then(response => response.text())
           .then(text => setContent(text))
       }
     }
-  }, [documentData])
-
-  useEffect(() => {
-    if (tagsData) {
-      setAvailableTags(tagsData)
-    }
-  }, [tagsData])
+  }, [document])
 
   const handleSave = async () => {
     try {
       const file = new File([content], 'document.html', { type: 'text/html' });
-      const contentUrl = await upload({ file });
+      const newVersionNumber = (document?.documentVersions.length || 0) + 1;
+      const newUrl = `/documents/${params.documentId}/versions/${newVersionNumber}`;
+      const uploadResult = await upload({ file, path: newUrl });
       await updateDocumentMutation.mutateAsync({
         where: { id: params.documentId },
         data: { name, description },
@@ -96,56 +81,66 @@ export default function DocumentEditorPage() {
       await createDocumentVersionMutation.mutateAsync({
         data: {
           documentId: params.documentId,
-          contentUrl: contentUrl.url,
-          versionNumber: (document?.documentVersions.length || 0) + 1,
+          url: uploadResult.url,
+          versionNumber: newVersionNumber,
         },
       })
       enqueueSnackbar('Document saved successfully', { variant: 'success' })
+      refetchDocument()
     } catch (error) {
       enqueueSnackbar('Error saving document', { variant: 'error' })
     }
   }
 
   const handleTagChange = async (newTags: string[]) => {
-    const tagsToAdd = newTags.filter(t => !tags.includes(t))
-    const tagsToRemove = tags.filter(t => !newTags.includes(t))
+    try {
+      const tagsToAdd = newTags.filter(t => !tags.includes(t))
+      const tagsToRemove = tags.filter(t => !newTags.includes(t))
 
-    for (const tagName of tagsToAdd) {
-      const tagId = availableTags.find(t => t.name === tagName)?.id
-      if (tagId) {
-        await createDocumentTagMutation.mutateAsync({
-          data: { documentId: params.documentId, tagId },
-        })
+      for (const tagName of tagsToAdd) {
+        const tagId = availableTags?.find(t => t.name === tagName)?.id
+        if (tagId) {
+          await createDocumentTagMutation.mutateAsync({
+            data: { documentId: params.documentId, tagId },
+          })
+        }
       }
-    }
 
-    for (const tagName of tagsToRemove) {
-      const documentTag = document?.documentTags.find(
-        dt => dt.tag.name === tagName,
-      )
-      if (documentTag) {
-        await deleteDocumentTagMutation.mutateAsync({
-          where: { id: documentTag.id },
-        })
+      for (const tagName of tagsToRemove) {
+        const documentTag = document?.documentTags.find(
+          dt => dt.tag.name === tagName,
+        )
+        if (documentTag) {
+          await deleteDocumentTagMutation.mutateAsync({
+            where: { id: documentTag.id },
+          })
+        }
       }
-    }
 
-    setTags(newTags)
-    enqueueSnackbar('Tags updated successfully', { variant: 'success' })
+      setTags(newTags)
+      enqueueSnackbar('Tags updated successfully', { variant: 'success' })
+      refetchDocument()
+    } catch (error) {
+      enqueueSnackbar('Error updating tags', { variant: 'error' })
+    }
   }
 
   const handleVersionRevert = async (versionNumber: number) => {
     const version = document?.documentVersions.find(
       v => v.versionNumber === versionNumber,
     )
-    if (version && version.contentUrl) {
-      const response = await fetch(version.contentUrl)
-      const text = await response.text()
-      setContent(text)
-      setIsVersionModalVisible(false)
-      enqueueSnackbar(`Reverted to version ${versionNumber}`, {
-        variant: 'info',
-      })
+    if (version && version.url) {
+      try {
+        const response = await fetch(version.url)
+        const text = await response.text()
+        setContent(text)
+        setIsVersionModalVisible(false)
+        enqueueSnackbar(`Reverted to version ${versionNumber}`, {
+          variant: 'info',
+        })
+      } catch (error) {
+        enqueueSnackbar('Error reverting version', { variant: 'error' })
+      }
     }
   }
 
@@ -183,7 +178,7 @@ export default function DocumentEditorPage() {
           placeholder="Select tags"
           value={tags}
           onChange={handleTagChange}
-          options={availableTags.map(tag => ({
+          options={availableTags?.map(tag => ({
             value: tag.name,
             label: tag.name,
           }))}

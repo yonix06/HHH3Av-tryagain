@@ -6,8 +6,6 @@ import {
   Table,
   Button,
   Modal,
-  Form,
-  Input,
   Select,
   Space,
   Tag,
@@ -28,7 +26,19 @@ import { useSnackbar } from 'notistack'
 import dayjs from 'dayjs'
 import { Api } from '@/core/trpc'
 import { PageLayout } from '@/designSystem'
-import { dummyDocuments, dummyTags } from '@/utils/dummyData'
+import { Prisma } from '@prisma/client'
+
+type Document = Prisma.DocumentGetPayload<{
+  include: {
+    documentTags: {
+      include: { tag: true }
+    }
+    documentVersions: {
+      include: { changes: true; url: true }
+    }
+    status: true
+  }
+}>
 
 export default function DocumentManagementPage() {
   const router = useRouter()
@@ -36,69 +46,32 @@ export default function DocumentManagementPage() {
   const { user, organization } = useUserContext()
   const { enqueueSnackbar } = useSnackbar()
 
-  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false)
-  const [documents, setDocuments] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [tags, setTags] = useState<any[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [isChangelogModalVisible, setIsChangelogModalVisible] = useState(false)
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null)
 
+  const { data: documents, isLoading, error } = Api.document.findMany.useQuery({
+    where: { organizationId: organization?.id },
+    include: { 
+      documentTags: { include: { tag: true } }, 
+      documentVersions: { include: { changes: true, url: true } }, 
+      status: true
+    },
+  })
+
+  const { data: tags } = Api.tag.findMany.useQuery({
+    where: { organizationId: organization?.id },
+  })
+
   useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        setDocuments(dummyDocuments)
-        setTags(dummyTags)
-      } catch (error) {
-        console.error('Error setting documents:', error)
-      } finally {
-        setIsLoading(false)
-      }
+    if (error) {
+      enqueueSnackbar('Error fetching documents', { variant: 'error' })
     }
+  }, [error, enqueueSnackbar])
 
-    fetchDocuments()
-  }, [])
-
-  const filteredDocuments = documents.filter(doc =>
-    selectedTags.length === 0 || doc.tags.some(tag => selectedTags.includes(tag))
-  )
-
-  const createDocument = async (values: any) => {
-    // Simulating document creation with dummy data
-    const newDocument = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...values,
-      status: 'DRAFT',
-      tags: [],
-      versions: [],
-    }
-    setDocuments([...documents, newDocument])
-    return newDocument
-  }
-
-  const updateDocument = async (id: string, values: any) => {
-    // Simulating document update with dummy data
-    const updatedDocuments = documents.map(doc =>
-      doc.id === id ? { ...doc, ...values } : doc
-    )
-    setDocuments(updatedDocuments)
-    return updatedDocuments.find(doc => doc.id === id)
-  }
-
-  const handleCreateDocument = async (values: any) => {
-    try {
-      const newDocument = await createDocument({
-        ...values,
-        userId: user?.id,
-        organizationId: organization?.id,
-      })
-      enqueueSnackbar('Document created successfully', { variant: 'success' })
-      setIsCreateModalVisible(false)
-      setDocuments([...documents, newDocument])
-    } catch (error) {
-      enqueueSnackbar('Failed to create document', { variant: 'error' })
-    }
-  }
+  const filteredDocuments = documents?.filter((doc: Document) =>
+    selectedTags.length === 0 || doc.documentTags.some(dt => selectedTags.includes(dt.tag.id))
+  ) || []
 
   const handleOpenChangelogModal = (documentId: string) => {
     setSelectedDocumentId(documentId)
@@ -115,30 +88,41 @@ export default function DocumentManagementPage() {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
+      render: (status: Document['status']) => status?.name || 'N/A',
+    },
+    {
+      title: 'URL',
+      dataIndex: 'documentVersions',
+      key: 'url',
+      render: (versions: Document['documentVersions']) => {
+        const latestVersion = versions[versions.length - 1];
+        return latestVersion ? (
+          <a href={latestVersion.url} target="_blank" rel="noopener noreferrer">
+            View Document
+          </a>
+        ) : 'N/A';
+      },
     },
     {
       title: 'Tags',
       key: 'tags',
-      dataIndex: 'tags',
-      render: (tags: string[]) => (
+      dataIndex: 'documentTags',
+      render: (documentTags: Document['documentTags']) => (
         <>
-          {tags?.map(tagName => {
-            const tag = dummyTags.find(t => t.name === tagName);
-            return (
-              <Tag color={tag?.color} key={tag?.id}>
-                {tagName}
-              </Tag>
-            );
-          })}
+          {documentTags.map(dt => (
+            <Tag color={dt.tag.color} key={dt.tag.id}>
+              {dt.tag.name}
+            </Tag>
+          ))}
         </>
       ),
     },
     {
       title: 'Version',
-      dataIndex: 'versions',
+      dataIndex: 'documentVersions',
       key: 'version',
-      render: (versions: any[]) =>
-        versions?.length > 0
+      render: (versions: Document['documentVersions']) =>
+        versions.length > 0
           ? versions[versions.length - 1].versionNumber
           : 'N/A',
     },
@@ -189,8 +173,11 @@ export default function DocumentManagementPage() {
   }
 
   const fetchChangelogData = (documentId: string) => {
-    const document = documents.find(doc => doc.id === documentId)
-    return document ? document.versions : []
+    const document = documents?.find((doc: Document) => doc.id === documentId)
+    return document ? document.documentVersions.map(version => ({
+      ...version,
+      changes: version.changes || []
+    })) : []
   }
 
   return (
@@ -204,7 +191,7 @@ export default function DocumentManagementPage() {
             <Button
               type="primary"
               icon={<PlusOutlined />}
-              onClick={() => setIsCreateModalVisible(true)}
+              onClick={() => router.push('/documents/create')}
             >
               Create New Document
             </Button>
@@ -215,7 +202,7 @@ export default function DocumentManagementPage() {
               onChange={handleTagChange}
               value={selectedTags}
             >
-              {tags.map(tag => (
+              {tags?.map(tag => (
                 <Select.Option key={tag.id} value={tag.id}>
                   {tag.name}
                 </Select.Option>
@@ -226,43 +213,10 @@ export default function DocumentManagementPage() {
 
         <Table
           columns={columns}
-          dataSource={filteredDocuments}
+          dataSource={filteredDocuments as Document[]}
           loading={isLoading}
           rowKey="id"
         />
-
-        <Modal
-          title="Create New Document"
-          visible={isCreateModalVisible}
-          onCancel={() => setIsCreateModalVisible(false)}
-          footer={null}
-        >
-          <Form onFinish={handleCreateDocument}>
-            <Form.Item
-              name="name"
-              rules={[
-                { required: true, message: 'Please input the document name!' },
-              ]}
-            >
-              <Input placeholder="Document Name" />
-            </Form.Item>
-            <Form.Item name="description">
-              <Input.TextArea placeholder="Description" />
-            </Form.Item>
-            <Form.Item name="templateId">
-            <Select placeholder="Select a template">
-              <Select.Option value="template1">Template 1</Select.Option>
-              <Select.Option value="template2">Template 2</Select.Option>
-              <Select.Option value="template3">Template 3</Select.Option>
-            </Select>
-            </Form.Item>
-            <Form.Item>
-              <Button type="primary" htmlType="submit">
-                Create
-              </Button>
-            </Form.Item>
-          </Form>
-        </Modal>
 
         <Modal
           title="Document Changelog"
@@ -276,13 +230,21 @@ export default function DocumentManagementPage() {
         >
           <List
             dataSource={selectedDocumentId ? fetchChangelogData(selectedDocumentId) : []}
-            renderItem={(item: any) => (
+            renderItem={(item: Document['documentVersions'][0]) => (
               <List.Item>
                 <List.Item.Meta
                   title={`Version ${item.versionNumber}`}
                   description={`Created at: ${dayjs(item.createdAt).format('YYYY-MM-DD HH:mm')}`}
                 />
-                <div>{item.changes}</div>
+                <div>
+                  {item.changes && item.changes.length > 0 ? (
+                    item.changes.map((change, index) => (
+                      <div key={index}>{change.description}</div>
+                    ))
+                  ) : (
+                    'No changes recorded'
+                  )}
+                </div>
               </List.Item>
             )}
           />

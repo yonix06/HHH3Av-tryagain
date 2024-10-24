@@ -3,7 +3,6 @@
 import { useUserContext } from '@/core/context'
 import { Api } from '@/core/trpc'
 import { PageLayout } from '@/designSystem'
-import { dummyDocuments, dummyValidations } from '@/utils/dummyData'
 import {
   BarChartOutlined,
   BellOutlined,
@@ -20,33 +19,15 @@ import {
   Row,
   theme,
   Typography,
+  Spin,
 } from 'antd'
 import dayjs, { Dayjs } from 'dayjs'
 import { useParams, useRouter } from 'next/navigation'
 import { useSnackbar } from 'notistack'
+import { useEffect } from 'react'
+import { Prisma } from '@prisma/client'
 const { Title, Text } = Typography
 const { useToken } = theme
-
-const useDocuments = () => {
-  return {
-    data: dummyDocuments.map(doc => ({
-      ...doc,
-      versions: doc.versions.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      ),
-    })),
-  }
-}
-
-const useValidations = () => {
-  return {
-    data: dummyValidations.sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    ),
-  }
-}
 
 export default function HomePage() {
   const router = useRouter()
@@ -56,33 +37,48 @@ export default function HomePage() {
   const { token } = useToken()
   const apiUtils = Api.useUtils()
 
-  const { data: documents } = useDocuments()
+  const { data: documents, isLoading: isLoadingDocuments, error: documentsError } = Api.document.findMany.useQuery({
+    where: { organizationId: organization?.id },
+    include: { documentVersions: true, documentTags: { include: { tag: true } }, status: true },
+  })
 
-  const { data: validations } = useValidations()
 
-  type Document = {
-    id: string
-    name: string
-    status: string
-    tags: string[]
-    versions: Array<{
-      id: string
-      versionNumber: number
-      content: string
-      createdAt: Date
-    }>
-  }
+
+  const { data: validations, isLoading: isLoadingValidations, error: validationsError } = Api.validation.findMany.useQuery({})
+
+  useEffect(() => {
+    if (documentsError) {
+      enqueueSnackbar('Error fetching documents', { variant: 'error' })
+    }
+    if (validationsError) {
+      enqueueSnackbar('Error fetching validations', { variant: 'error' })
+    }
+  }, [documentsError, validationsError, enqueueSnackbar])
+
+  type Document = Prisma.DocumentGetPayload<{
+    include: {
+      documentVersions: true
+      documentTags: {
+        include: {
+          tag: true
+        }
+      }
+      status: true
+    }
+  }>
 
   const getListData = (value: Dayjs) => {
+    if (!documents || !validations) return []
+
     const listData = [
-      ...(documents?.flatMap((doc: Document) =>
-        doc.versions.map(version => ({
+      ...documents.flatMap((doc: Document) =>
+        doc.documentVersions.map(version => ({
           type: 'success',
           content: doc.name,
           date: dayjs(version.createdAt),
         })),
-      ) || []),
-      ...(validations?.map(validation => ({
+      ),
+      ...validations.map(validation => ({
         type:
           validation.status === 'APPROVED'
             ? 'success'
@@ -91,7 +87,7 @@ export default function HomePage() {
               : 'warning',
         content: `Validation: ${validation.comment}`,
         date: dayjs(validation.createdAt),
-      })) || []),
+      })),
       {
         type: 'error',
         content: 'Urgent: Team Meeting',
@@ -139,6 +135,14 @@ export default function HomePage() {
     )
   }
 
+  if (isLoadingDocuments || isLoadingValidations) {
+    return (
+      <PageLayout layout="narrow">
+        <Spin size="large" />
+      </PageLayout>
+    )
+  }
+
   return (
     <PageLayout layout="narrow">
       <Title level={2}>Dashboard</Title>
@@ -164,7 +168,7 @@ export default function HomePage() {
           >
             <Text style={{ color: token.colorTextBase }}>
               Total Documents:{' '}
-              {documents?.reduce((acc, doc) => acc + doc.versions.length, 0) ||
+              {documents?.reduce((acc, doc) => acc + doc.documentVersions.length, 0) ||
                 0}
             </Text>
           </Card>
@@ -186,8 +190,8 @@ export default function HomePage() {
             <Text style={{ color: token.colorTextBase }}>
               Pending:{' '}
               {documents
-                ?.filter((d: Document) => d.status === 'DRAFT')
-                .reduce((acc, doc) => acc + doc.versions.length, 0) || 0}
+                ?.filter((d: Document) => d.status.name === 'DRAFT')
+                .length || 0}
             </Text>
           </Card>
         </Col>
@@ -252,7 +256,7 @@ export default function HomePage() {
             <List
               dataSource={documents
                 ?.flatMap((doc: Document) =>
-                  doc.versions.map(version => ({
+                  doc.documentVersions.map(version => ({
                     status: doc.status,
                     createdAt: version.createdAt,
                     documentId: doc.id,
@@ -272,7 +276,7 @@ export default function HomePage() {
                   style={{ cursor: 'pointer' }}
                 >
                   <Text style={{ color: token.colorTextBase }}>
-                    {item.status}: {item.name} (v{item.versionNumber})
+                    {item.status.name}: {item.name} (v{item.versionNumber})
                   </Text>
                 </List.Item>
               )}

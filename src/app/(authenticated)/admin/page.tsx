@@ -20,7 +20,6 @@ import { useRouter } from 'next/navigation'
 import { useSnackbar } from 'notistack'
 import { Api } from '@/core/trpc'
 import { PageLayout } from '@/designSystem'
-import { dummyTags } from '@/utils/dummyData'
 import useLocalization from '@/hooks/useLocalization'
 import { getLanguages } from '@/i18n/config'
 import { OverviewTab } from './components/OverviewTab'
@@ -40,22 +39,28 @@ export default function AdminPanelPage() {
   const [modalType, setModalType] = useState('')
   const { t, changeLanguage, currentLanguage } = useLocalization()
   const [activeMenuKey, setActiveMenuKey] = useState('overview')
+  const [isLoading, setIsLoading] = useState(true)
 
-  const { data: users, refetch: refetchUsers } = Api.user.findMany.useQuery({})
-  const { data: userOrganizations, refetch: refetchUserOrganizations } = Api.organizationRole.findMany.useQuery({
+const { data: users, refetch: refetchUsers, isLoading: isLoadingUsers, error: usersError } = Api.user.findMany.useQuery({
+  include: { organizationRoles: { include: { organization: true } } }
+})
+  const { data: userOrganizations, refetch: refetchUserOrganizations, isLoading: isLoadingUserOrganizations, error: userOrganizationsError } = Api.organizationRole.findMany.useQuery({
     where: { userId: user?.id },
     include: { organization: true },
   });
-  const { data: settings } = Api.organization.findUnique.useQuery({
+  const { data: settings, isLoading: isLoadingSettings, error: settingsError } = Api.organization.findUnique.useQuery({
     where: { id: organization?.id },
   })
-  const { data: documents } = Api.document.findMany.useQuery({
+  const { data: documents, isLoading: isLoadingDocuments, error: documentsError } = Api.document.findMany.useQuery({
     where: { organizationId: organization?.id },
   })
-  const { data: templates } = Api.documentTemplate.findMany.useQuery({
+  const { data: templates, isLoading: isLoadingTemplates, error: templatesError } = Api.documentTemplate.findMany.useQuery({
     where: organization?.id ? { organizationId: organization.id } : {},
   })
-  const tags = dummyTags
+const { data: tags, isLoading: isLoadingTags, error: tagsError } = Api.tag.findMany.useQuery({
+  where: { organizationId: organization?.id },
+  select: { id: true, name: true, color: true }
+})
   const [languages, setLanguages] = useState<string[]>(getLanguages())
 
   const { mutateAsync: updateUser } = Api.user.update.useMutation()
@@ -75,9 +80,24 @@ export default function AdminPanelPage() {
   }, { enabled: false })
 
   useEffect(() => {
-    refetchUsers();
-    refetchUserOrganizations();
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        await Promise.all([refetchUsers(), refetchUserOrganizations()]);
+      } catch (error) {
+        enqueueSnackbar('Failed to fetch data', { variant: 'error' });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, [organization])
+
+  useEffect(() => {
+    if (usersError || userOrganizationsError || settingsError || documentsError || templatesError || tagsError) {
+      enqueueSnackbar('Error loading data. Please try again.', { variant: 'error' });
+    }
+  }, [usersError, userOrganizationsError, settingsError, documentsError, templatesError, tagsError])
 
   const handleUpdateUser = async (values: any) => {
     try {
@@ -161,7 +181,7 @@ export default function AdminPanelPage() {
 
   const handleCreateTag = async (values: any) => {
     try {
-      await createTag({ data: { ...values, organizationId: organization?.id } })
+      await createTag({ data: { ...values, organizationId: organization?.id, color: values.color.toHexString() } })
       enqueueSnackbar('Tag created successfully', { variant: 'success' })
       setIsModalVisible(false)
     } catch (error) {
@@ -197,6 +217,10 @@ export default function AdminPanelPage() {
   }
 
   const renderContent = () => {
+    if (isLoading || isLoadingUsers || isLoadingUserOrganizations || isLoadingSettings || isLoadingDocuments || isLoadingTemplates || isLoadingTags) {
+      return <div>Loading...</div>;
+    }
+
     switch (activeMenuKey) {
       case 'overview':
         return <OverviewTab handleShortcutClick={handleMenuChange} />;
@@ -217,7 +241,7 @@ export default function AdminPanelPage() {
                   description={
                     <>
                       <div>{item.email}</div>
-                      <div>Organization: N/A</div>
+                      <div>Organization: {item.organizationRoles[0]?.organization.name || 'N/A'}</div>
                     </>
                   } 
                 />
@@ -260,7 +284,7 @@ export default function AdminPanelPage() {
         </div>
         <Flex flex={1} vertical>
           <Title level={2}>🐧 Admin Panel</Title>
-            <Card>
+          <Card>
             {renderContent()}
           </Card>
         </Flex>

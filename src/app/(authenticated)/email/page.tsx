@@ -35,25 +35,32 @@ export default function EmailComposerPage() {
   const [selectedList, setSelectedList] = useState<string | null>(null)
   const [attachments, setAttachments] = useState<string[]>([])
 
-  const { data: emailLists } = Api.emailList.findMany.useQuery({
+  const { data: emailLists, isLoading: isLoadingEmailLists, error: emailListsError } = Api.emailList.findMany.useQuery({
     where: { organizationId: organization?.id },
   })
 
-  const { data: approvedDocuments } = Api.document.findMany.useQuery({
+  const { data: approvedDocuments, isLoading: isLoadingDocuments, error: documentsError } = Api.document.findMany.useQuery({
     where: { organizationId: organization?.id },
+    include: { documentVersions: true },
   })
 
   const { mutateAsync: upload } = useUploadPublic()
 
+  const { mutateAsync: sendEmail } = Api.email.send.useMutation()
+
   const handleSendEmail = async (values: any) => {
     try {
-      // Here you would typically call an API to send the email
-      // For this example, we'll just show a success message
+      await sendEmail({
+        subject: values.subject,
+        content: values.content,
+        emailListId: values.emailList,
+        attachments: attachments,
+      })
       enqueueSnackbar('Email sent successfully!', { variant: 'success' })
       form.resetFields()
       setAttachments([])
     } catch (error) {
-      enqueueSnackbar('Failed to send email', { variant: 'error' })
+      enqueueSnackbar(`Failed to send email: ${error.message}`, { variant: 'error' })
     }
   }
 
@@ -61,17 +68,27 @@ export default function EmailComposerPage() {
     try {
       const { url } = await upload({ file })
       setAttachments(prev => [...prev, url])
+      enqueueSnackbar('File uploaded successfully', { variant: 'success' })
       return false // Prevent default upload behavior
     } catch (error) {
-      enqueueSnackbar('Failed to upload file', { variant: 'error' })
+      enqueueSnackbar(`Failed to upload file: ${error.message}`, { variant: 'error' })
     }
   }
 
   const handleApprovedDocumentSelect = (documentId: string) => {
     const document = approvedDocuments?.find(doc => doc.id === documentId)
-    if (document) {
-      setAttachments(prev => [...prev, document.name])
+    if (document && document.documentVersions.length > 0) {
+      const latestVersion = document.documentVersions[document.documentVersions.length - 1]
+      setAttachments(prev => [...prev, latestVersion.url])
     }
+  }
+
+  if (emailListsError) {
+    enqueueSnackbar(`Error fetching email lists: ${emailListsError.message}`, { variant: 'error' })
+  }
+
+  if (documentsError) {
+    enqueueSnackbar(`Error fetching approved documents: ${documentsError.message}`, { variant: 'error' })
   }
 
   return (
@@ -86,16 +103,17 @@ export default function EmailComposerPage() {
             label="Select Email List"
             rules={[{ required: true, message: 'Please select an email list' }]}
           >
-            <Select
-              placeholder="Select an email list"
-              onChange={value => setSelectedList(value)}
-            >
-              {emailLists?.map(list => (
-                <Select.Option key={list.id} value={list.id}>
-                  {list.name}
-                </Select.Option>
-              ))}
-            </Select>
+          <Select
+            placeholder="Select an email list"
+            onChange={value => setSelectedList(value)}
+            loading={isLoadingEmailLists}
+          >
+            {emailLists?.map(list => (
+              <Select.Option key={list.id} value={list.id}>
+                {list.name}
+              </Select.Option>
+            ))}
+          </Select>
           </Form.Item>
           <Form.Item
             name="subject"
@@ -120,12 +138,16 @@ export default function EmailComposerPage() {
                 style={{ width: '100%' }}
                 placeholder="Select approved document"
                 onChange={handleApprovedDocumentSelect}
+                loading={isLoadingDocuments}
               >
-                {approvedDocuments?.map(doc => (
+              {approvedDocuments?.filter(doc => doc.documentVersions.length > 0).map(doc => {
+                const latestVersion = doc.documentVersions[doc.documentVersions.length - 1]
+                return (
                   <Select.Option key={doc.id} value={doc.id}>
-                    {doc.name}
+                    {doc.name} (v{latestVersion.versionNumber})
                   </Select.Option>
-                ))}
+                )
+              })}
               </Select>
               {attachments.length > 0 && (
                 <Text>Attached: {attachments.join(', ')}</Text>

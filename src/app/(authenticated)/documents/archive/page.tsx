@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Typography, Input, Table, Space, Button, Modal, DatePicker, Select } from 'antd'
 import {
   SearchOutlined,
@@ -28,6 +28,7 @@ export default function ArchivePage() {
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null] | null>(null)
   const [selectedAuthor, setSelectedAuthor] = useState<string | null>(null)
   const [contentSearch, setContentSearch] = useState('')
+  const [filteredDocuments, setFilteredDocuments] = useState<any[]>([])
 
   // Dummy data for authors, replace with actual data fetching
   const authors = [
@@ -40,6 +41,7 @@ export default function ArchivePage() {
     data: documents,
     isLoading,
     refetch,
+    error,
   } = Api.document.findMany.useQuery({
     include: { documentVersions: true },
   })
@@ -68,11 +70,23 @@ export default function ArchivePage() {
     }
   }
 
-  const filteredDocuments = documents?.filter(
-    doc =>
-      doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.description?.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  useEffect(() => {
+    if (documents) {
+      setFilteredDocuments(
+        documents.filter(
+          doc =>
+            doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            doc.description?.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      )
+    }
+  }, [documents, searchTerm])
+
+  useEffect(() => {
+    if (error) {
+      enqueueSnackbar('Error fetching documents', { variant: 'error' })
+    }
+  }, [error, enqueueSnackbar])
 
   const columns = [
     {
@@ -153,6 +167,7 @@ export default function ArchivePage() {
             loading={isLoading}
             style={{ marginTop: 24, width: '100%' }}
           />
+          {error && <Text type="danger">Error loading documents. Please try again.</Text>}
         </div>
 
         <Modal

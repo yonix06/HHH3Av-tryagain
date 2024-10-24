@@ -13,11 +13,12 @@ export type EmailTemplateKey = keyof typeof EmailService.templates
 
 type SendOptions = {
   name?: string
-  email: string
+  email?: string
   subject: string
   templateKey?: EmailTemplateKey
   content?: string
   variables: Record<string, string>
+  emailListId?: string
 }
 
 export class Service {
@@ -40,31 +41,46 @@ export class Service {
     }
   }
 
+  /**
+   * Send an email
+   * @param options SendOptions including emailListId for bulk sending
+   */
   async send(options: SendOptions): Promise<void> {
     const content = this.templates[options.templateKey] ?? options.content
-
-    const name = options.name ?? options.email
 
     const contentBuilt = this.getTemplate({
       content,
       variables: options.variables,
     })
 
+    let recipients: { name: string; email: string }[];
+    if (options.emailListId) {
+      recipients = await this.getEmailListRecipients(options.emailListId);
+    } else if (options.email) {
+      recipients = [{ name: options.name ?? options.email, email: options.email }];
+    } else {
+      throw new Error('Either email or emailListId must be provided');
+    }
+
+    const sendOptions = {
+      content: contentBuilt,
+      to: recipients,
+      variables: options.variables,
+      subject: options.subject,
+    }
+
     return this.provider
-      .send({
-        content: contentBuilt,
-        to: [
-          {
-            name: name,
-            email: options.email,
-          },
-        ],
-        variables: options.variables,
-        subject: options.subject,
-      })
+      .send(sendOptions)
       .then(() => {
-        console.log(`Email sent to ${options.email}`, options)
+        console.log(`Email sent`, options)
       })
+  }
+
+  private async getEmailListRecipients(emailListId: string): Promise<{ name: string; email: string }[]> {
+    // TODO: Implement the logic to fetch recipients from the email list
+    // This should query the database or an external service to get the list of recipients
+    // For now, we'll return an empty array as a placeholder
+    return [];
   }
 
   getTemplate(options: {
