@@ -4,15 +4,13 @@ import {
   Typography,
   Tabs,
   Card,
-  List,
-  Button,
   Modal,
   Form,
   Input,
   Select,
-  Space,
   ColorPicker,
-  Tag,
+  Button,
+  List,
 } from 'antd'
 import {
   UserOutlined,
@@ -22,6 +20,7 @@ import {
   TagsOutlined,
   BgColorsOutlined,
   GlobalOutlined,
+  AppstoreOutlined,
 } from '@ant-design/icons'
 import { useState, useEffect } from 'react'
 const { Title, Text } = Typography
@@ -29,12 +28,17 @@ const { TabPane } = Tabs
 import { useUserContext } from '@/core/context'
 import { useRouter } from 'next/navigation'
 import { useSnackbar } from 'notistack'
-import dayjs from 'dayjs'
 import { Api } from '@/core/trpc'
 import { PageLayout } from '@/designSystem'
 import { dummyTags } from '@/utils/dummyData'
 import useLocalization from '@/hooks/useLocalization'
 import { getLanguages } from '@/i18n/config'
+import { OverviewTab } from './components/OverviewTab'
+import { SystemSettingsTab } from './components/SystemSettingsTab'
+import { DocumentTemplatesTab } from './components/DocumentTemplatesTab'
+import { DocumentTagsTab } from './components/DocumentTagsTab'
+import { ThemeSettingsTab } from './components/ThemeSettingsTab'
+import { LanguageManagementTab } from './components/LanguageManagementTab'
 
 export default function AdminPanelPage() {
   const router = useRouter()
@@ -43,6 +47,7 @@ export default function AdminPanelPage() {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [modalType, setModalType] = useState('')
   const { t, changeLanguage, currentLanguage } = useLocalization()
+  const [activeTabKey, setActiveTabKey] = useState('overview')
 
   const { data: users, refetch: refetchUsers } = Api.user.findMany.useQuery({})
   const { data: userOrganizations, refetch: refetchUserOrganizations } = Api.organizationRole.findMany.useQuery({
@@ -59,7 +64,7 @@ export default function AdminPanelPage() {
     where: organization?.id ? { organizationId: organization.id } : {},
   })
   const tags = dummyTags
-  const [languages, setLanguages] = useState(getLanguages())
+  const [languages, setLanguages] = useState<string[]>(getLanguages())
 
   const { mutateAsync: updateUser } = Api.user.update.useMutation()
   const { mutateAsync: updateOrganization } =
@@ -173,36 +178,34 @@ export default function AdminPanelPage() {
   }
 
   const handleAddLanguage = (language: string) => {
-    try {
-      if (languages && !languages.includes(language)) {
-        setLanguages([...languages, language])
-        enqueueSnackbar(`Language ${language} added successfully`, { variant: 'success' })
-      } else {
-        enqueueSnackbar(`Language ${language} already exists`, { variant: 'warning' })
-      }
-    } catch (error) {
-      console.error('Error adding language:', error)
-      enqueueSnackbar('Failed to add language', { variant: 'error' })
+    if (languages && !languages.includes(language)) {
+      setLanguages([...languages, language])
+      enqueueSnackbar(`Language ${language} added successfully`, { variant: 'success' })
+    } else {
+      enqueueSnackbar(`Language ${language} already exists`, { variant: 'warning' })
     }
   }
 
   const handleRemoveLanguage = (language: string) => {
-    try {
-      if (language === 'en') {
-        enqueueSnackbar('Cannot remove default language (English)', { variant: 'error' })
-      } else if (languages) {
-        setLanguages(languages.filter(lang => lang !== language))
-        enqueueSnackbar(`Language ${language} removed successfully`, { variant: 'success' })
-      }
-    } catch (error) {
-      console.error('Error removing language:', error)
-      enqueueSnackbar('Failed to remove language', { variant: 'error' })
+    if (language === 'en') {
+      enqueueSnackbar('Cannot remove default language (English)', { variant: 'error' })
+    } else if (languages) {
+      setLanguages(languages.filter(lang => lang !== language))
+      enqueueSnackbar(`Language ${language} removed successfully`, { variant: 'success' })
     }
   }
 
   const showModal = (type: string) => {
     setModalType(type)
     setIsModalVisible(true)
+  }
+
+  const handleTabChange = (key: string) => {
+    setActiveTabKey(key)
+  }
+
+  const handleShortcutClick = (key: string) => {
+    setActiveTabKey(key)
   }
 
   return (
@@ -212,7 +215,18 @@ export default function AdminPanelPage() {
         <Text>
           Manage users, settings, and documents for your organization.
         </Text>
-        <Tabs defaultActiveKey="1" style={{ marginTop: 16 }}>
+        <Tabs activeKey={activeTabKey} onChange={handleTabChange} style={{ marginTop: 16 }}>
+          <TabPane
+            tab={
+              <span>
+                <AppstoreOutlined />
+                Overview
+              </span>
+            }
+            key="overview"
+          >
+            <OverviewTab handleShortcutClick={handleShortcutClick} />
+          </TabPane>
           <TabPane
             tab={
               <span>
@@ -220,7 +234,7 @@ export default function AdminPanelPage() {
                 User Profiles
               </span>
             }
-            key="1"
+            key="user-profiles"
           >
             <List
               dataSource={users}
@@ -253,25 +267,9 @@ export default function AdminPanelPage() {
                 System Settings
               </span>
             }
-            key="2"
+            key="system-settings"
           >
-            <List
-              dataSource={[settings]}
-              renderItem={item => (
-                <List.Item
-                  actions={[
-                    <Button key="edit" onClick={() => showModal('settings')}>
-                      Edit
-                    </Button>,
-                  ]}
-                >
-                  <List.Item.Meta
-                    title="Organization Settings"
-                    description={`Name: ${item?.name}`}
-                  />
-                </List.Item>
-              )}
-            />
+            <SystemSettingsTab settings={settings} showModal={showModal} />
           </TabPane>
           <TabPane
             tab={
@@ -280,7 +278,7 @@ export default function AdminPanelPage() {
                 Reports & Analytics
               </span>
             }
-            key="3"
+            key="reports-analytics"
           >
             <List
               dataSource={[
@@ -305,27 +303,9 @@ export default function AdminPanelPage() {
                 Document Templates
               </span>
             }
-            key="4"
+            key="document-templates"
           >
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Button onClick={() => showModal('template')}>
-                Create New Template
-              </Button>
-              <List
-                dataSource={templates}
-                renderItem={item => (
-                  <List.Item>
-                    <List.Item.Meta
-                      title={item.name}
-                      description={item.description}
-                    />
-                    <div>
-                      Created: {dayjs(item.createdAt).format('YYYY-MM-DD')}
-                    </div>
-                  </List.Item>
-                )}
-              />
-            </Space>
+            <DocumentTemplatesTab templates={templates} showModal={showModal} />
           </TabPane>
           <TabPane
             tab={
@@ -334,19 +314,9 @@ export default function AdminPanelPage() {
                 Document Tags
               </span>
             }
-            key="5"
+            key="document-tags"
           >
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Button onClick={() => showModal('tag')}>Create New Tag</Button>
-              <List
-                dataSource={tags}
-                renderItem={item => (
-                  <List.Item>
-                    <Tag color={item.color}>{item.name}</Tag>
-                  </List.Item>
-                )}
-              />
-            </Space>
+            <DocumentTagsTab tags={tags} showModal={showModal} />
           </TabPane>
           <TabPane
             tab={
@@ -355,11 +325,9 @@ export default function AdminPanelPage() {
                 Theme Settings
               </span>
             }
-            key="6"
+            key="theme-settings"
           >
-            <Button onClick={() => showModal('theme')}>
-              Edit Theme Settings
-            </Button>
+            <ThemeSettingsTab showModal={showModal} handleUpdateTheme={handleUpdateTheme} />
           </TabPane>
           <TabPane
             tab={
@@ -368,31 +336,16 @@ export default function AdminPanelPage() {
                 Language Management
               </span>
             }
-            key="7"
+            key="language-management"
           >
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Button onClick={() => showModal('language')}>Add New Language</Button>
-              <List
-                dataSource={languages}
-                renderItem={item => (
-                  <List.Item
-                    actions={[
-                      <Button key="edit" onClick={() => changeLanguage(item)}>
-                        Set as Current
-                      </Button>,
-                      <Button key="delete" danger onClick={() => handleRemoveLanguage(item)} disabled={item === 'en'}>
-                        Remove
-                      </Button>,
-                    ]}
-                  >
-                    <List.Item.Meta
-                      title={item.toUpperCase()}
-                      description={item === currentLanguage ? 'Current Language' : ''}
-                    />
-                  </List.Item>
-                )}
-              />
-            </Space>
+            <LanguageManagementTab
+              languages={languages}
+              currentLanguage={currentLanguage}
+              changeLanguage={changeLanguage}
+              handleRemoveLanguage={handleRemoveLanguage}
+              handleAddLanguage={handleAddLanguage}
+              t={t}
+            />
           </TabPane>
         </Tabs>
       </Card>
@@ -499,18 +452,6 @@ export default function AdminPanelPage() {
             <Form.Item>
               <Button type="primary" htmlType="submit">
                 Update Theme
-              </Button>
-            </Form.Item>
-          </Form>
-        )}
-        {modalType === 'language' && (
-          <Form onFinish={(values) => handleAddLanguage(values.language)}>
-            <Form.Item name="language" label="Language Code">
-              <Input />
-            </Form.Item>
-            <Form.Item>
-              <Button type="primary" htmlType="submit">
-                Add Language
               </Button>
             </Form.Item>
           </Form>
