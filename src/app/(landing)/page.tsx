@@ -167,12 +167,12 @@ export default function LandingPage() {
 
   const logos = [
     {
-      url: 'https://toppng.com/uploads/preview/github-logo-png-transparent-images-11659780092l6hc50s35i.png',
+      url: 'https://vectorseek.com/wp-content/uploads/2023/09/Nextjs-Logo-Vector.svg-.png',
     },
     {
-      url: 'https://w7.pngwing.com/pngs/560/836/png-transparent-region-paca-hd-logo.png',
+      url: 'https://dev.marblism.com/img/logofull.png',
     },
-    { url: 'https://i.imgur.com/j8jPb4H.png' },
+    { url: 'https://logos-world.net/wp-content/uploads/2020/11/GitHub-Emblem.png' },
     { url: 'https://i.imgur.com/mJ1sZFv.png' },
   ]
 
