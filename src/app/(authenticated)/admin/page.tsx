@@ -259,8 +259,8 @@ export default function AdminPanelPage() {
           <LeftAdminMenu selectedKey={activeMenuKey} onSelect={handleMenuChange} />
         </div>
         <Flex flex={1} vertical>
-          <Card>
-            <Title level={2}>🐧 Admin Panel</Title>
+          <Title level={2}>🐧 Admin Panel</Title>
+            <Card>
             {renderContent()}
           </Card>
         </Flex>
