@@ -1,6 +1,6 @@
 import { useUserContext } from '@/core/context'
 import { Api } from '@/core/trpc'
-import { OrganizationRole, User } from '@prisma/client'
+import { OrganizationRole, User, Prisma } from '@prisma/client'
 import { useSnackbar } from 'notistack'
 import { useState } from 'react'
 
@@ -48,7 +48,7 @@ export const useDelete = ({ users }: Props) => {
         await deleteOrganizationRole({
           where: {
             userId: user.id,
-          },
+          } as Prisma.OrganizationRoleDeleteManyArgs['where'],
         })
 
         if (user.id === userLogged.id) {

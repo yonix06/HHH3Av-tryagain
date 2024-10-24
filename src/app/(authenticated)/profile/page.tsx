@@ -6,7 +6,7 @@ import { useUserContext } from '@/core/context'
 import { Utility } from '@/core/helpers/utility'
 import { Api } from '@/core/trpc'
 import { PageLayout } from '@/designSystem'
-import { User } from '@prisma/client'
+import type { User } from '@prisma/client'
 import { signOut } from 'next-auth/react'
 import { useSnackbar } from 'notistack'
 import { useEffect, useState } from 'react'
@@ -30,7 +30,7 @@ export default function ProfilePage() {
     form.setFieldsValue(user)
   }, [user])
 
-  const handleSubmit = async (values: Partial<User>) => {
+  const handleSubmit = async (values: Partial<Pick<User, 'email' | 'name' | 'pictureUrl'>>) => {
     setLoading(true)
 
     try {

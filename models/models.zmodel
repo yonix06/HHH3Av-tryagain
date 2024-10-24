@@ -63,13 +63,15 @@ model Document {
     name            String          
     description  String?          
 
-userId        String          
+userId        String?          
     user            User?            @relation(fields: [userId], references: [id], name:"user")  
-    organizationId  String          
+    organizationId  String?          
     organization  Organization?  @relation(fields: [organizationId], references: [id], name:"organization")  
  
     status        Status?         @relation(fields: [statusId], references: [id])
     statusId      String?
+
+    templateId String?
 
     documentVersions  DocumentVersion[]  @relation("document")  
     documentRequests  DocumentRequest[]  @relation("document")  

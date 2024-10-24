@@ -83,7 +83,10 @@ export default function HomePage() {
       }
       status: true
     }
-  }>
+  }> & {
+    documentId: string;
+    versionNumber: number;
+  }
 
   const getListData = (value: Dayjs) => {
     if (!documents || !validations) return []
@@ -276,11 +279,10 @@ export default function HomePage() {
               dataSource={documents
                 ?.flatMap((doc: Document) =>
                   doc.documentVersions.map(version => ({
-                    status: doc.status,
-                    createdAt: version.createdAt,
+                    ...doc,
                     documentId: doc.id,
-                    name: doc.name,
                     versionNumber: version.versionNumber,
+                    createdAt: version.createdAt,
                   })),
                 )
                 .sort(
@@ -289,7 +291,7 @@ export default function HomePage() {
                     new Date(a.createdAt).getTime(),
                 )
                 .slice(0, 5)}
-              renderItem={item => (
+              renderItem={(item: Document) => (
                 <List.Item
                   onClick={() => router.push(`/documents/${item.documentId}`)}
                   style={{ cursor: 'pointer' }}

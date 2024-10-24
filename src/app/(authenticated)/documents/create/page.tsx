@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Typography, Form, Input, Button, Card, Row, Col } from 'antd'
 import { useUserContext } from '@/core/context'
 import { useRouter } from 'next/navigation'
 import { useSnackbar } from 'notistack'
 import { Api } from '@/core/trpc'
 import { PageLayout } from '@/designSystem'
+import { Prisma } from '@prisma/client'
 
 const { Title, Text } = Typography
 
@@ -22,13 +23,14 @@ export default function CreateDocumentPage() {
     where: organization?.id ? { organizationId: organization.id } : {},
   })
 
-  const handleCreateDocument = async (values: any) => {
+  const handleCreateDocument = async (values: Prisma.DocumentCreateArgs['data']) => {
     try {
       const newDocument = await createDocument({
-        ...values,
-        templateId: selectedTemplate,
-        userId: user?.id,
-        organizationId: organization?.id,
+        data: {
+          ...values,
+          user: user?.id ? { connect: { id: user.id } } : undefined,
+          organization: organization?.id ? { connect: { id: organization.id } } : undefined,
+        },
       })
       enqueueSnackbar('Document created successfully', { variant: 'success' })
       router.push(`/documents/${newDocument.id}/edit`)
