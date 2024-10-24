@@ -2,7 +2,6 @@
 
 import {
   Typography,
-  Tabs,
   Card,
   Modal,
   Form,
@@ -11,6 +10,7 @@ import {
   ColorPicker,
   Button,
   List,
+  Flex,
 } from 'antd'
 import {
   UserOutlined,
@@ -24,7 +24,6 @@ import {
 } from '@ant-design/icons'
 import { useState, useEffect } from 'react'
 const { Title, Text } = Typography
-const { TabPane } = Tabs
 import { useUserContext } from '@/core/context'
 import { useRouter } from 'next/navigation'
 import { useSnackbar } from 'notistack'
@@ -39,6 +38,7 @@ import { DocumentTemplatesTab } from './components/DocumentTemplatesTab'
 import { DocumentTagsTab } from './components/DocumentTagsTab'
 import { ThemeSettingsTab } from './components/ThemeSettingsTab'
 import { LanguageManagementTab } from './components/LanguageManagementTab'
+import { LeftAdminMenu } from './components/LeftAdminMenu'
 
 export default function AdminPanelPage() {
   const router = useRouter()
@@ -47,7 +47,7 @@ export default function AdminPanelPage() {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [modalType, setModalType] = useState('')
   const { t, changeLanguage, currentLanguage } = useLocalization()
-  const [activeTabKey, setActiveTabKey] = useState('overview')
+  const [activeMenuKey, setActiveMenuKey] = useState('overview')
 
   const { data: users, refetch: refetchUsers } = Api.user.findMany.useQuery({})
   const { data: userOrganizations, refetch: refetchUserOrganizations } = Api.organizationRole.findMany.useQuery({
@@ -200,155 +200,98 @@ export default function AdminPanelPage() {
     setIsModalVisible(true)
   }
 
-  const handleTabChange = (key: string) => {
-    setActiveTabKey(key)
+  const handleMenuChange = (key: string) => {
+    setActiveMenuKey(key)
   }
 
-  const handleShortcutClick = (key: string) => {
-    setActiveTabKey(key)
-  }
+  const renderContent = () => {
+    switch (activeMenuKey) {
+      case 'overview':
+        return <OverviewTab handleShortcutClick={handleMenuChange} />;
+      case 'user-profiles':
+        return (
+          <List
+            dataSource={users}
+            renderItem={item => (
+              <List.Item
+                actions={[
+                  <Button key="edit" onClick={() => showModal('user')}>
+                    Edit
+                  </Button>,
+                ]}
+              >
+                <List.Item.Meta 
+                  title={item.name} 
+                  description={
+                    <>
+                      <div>{item.email}</div>
+                      <div>Organization: N/A</div>
+                    </>
+                  } 
+                />
+                <div>Role: {item.globalRole}</div>
+              </List.Item>
+            )}
+          />
+        );
+      case 'system-settings':
+        return <SystemSettingsTab settings={settings} showModal={showModal} />;
+      case 'reports-analytics':
+        return (
+          <List
+            dataSource={[
+              { title: 'Total Users', value: users?.length },
+              { title: 'Total Documents', value: documents?.length },
+              { title: 'Total Templates', value: templates?.length },
+            ]}
+            renderItem={item => (
+              <List.Item>
+                <List.Item.Meta
+                  title={item.title}
+                  description={item.value?.toString()}
+                />
+              </List.Item>
+            )}
+          />
+        );
+      case 'document-templates':
+        return <DocumentTemplatesTab templates={templates} showModal={showModal} />;
+      case 'document-tags':
+        return <DocumentTagsTab tags={tags} showModal={showModal} />;
+      case 'theme-settings':
+        return <ThemeSettingsTab showModal={showModal} handleUpdateTheme={handleUpdateTheme} />;
+      case 'language-management':
+        return (
+          <LanguageManagementTab
+            languages={languages}
+            currentLanguage={currentLanguage}
+            changeLanguage={changeLanguage}
+            handleRemoveLanguage={handleRemoveLanguage}
+            handleAddLanguage={handleAddLanguage}
+            t={t}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <PageLayout layout="full-width">
-      <Card>
-        <Title level={2}>Admin Panel</Title>
-        <Text>
-          Manage users, settings, and documents for your organization.
-        </Text>
-        <Tabs activeKey={activeTabKey} onChange={handleTabChange} style={{ marginTop: 16 }}>
-          <TabPane
-            tab={
-              <span>
-                <AppstoreOutlined />
-                Overview
-              </span>
-            }
-            key="overview"
-          >
-            <OverviewTab handleShortcutClick={handleShortcutClick} />
-          </TabPane>
-          <TabPane
-            tab={
-              <span>
-                <UserOutlined />
-                User Profiles
-              </span>
-            }
-            key="user-profiles"
-          >
-            <List
-              dataSource={users}
-              renderItem={item => (
-                <List.Item
-                  actions={[
-                    <Button key="edit" onClick={() => showModal('user')}>
-                      Edit
-                    </Button>,
-                  ]}
-                >
-                  <List.Item.Meta 
-                    title={item.name} 
-                    description={
-                      <>
-                        <div>{item.email}</div>
-                        <div>Organization: N/A</div>
-                      </>
-                    } 
-                  />
-                  <div>Role: {item.globalRole}</div>
-                </List.Item>
-              )}
-            />
-          </TabPane>
-          <TabPane
-            tab={
-              <span>
-                <SettingOutlined />
-                System Settings
-              </span>
-            }
-            key="system-settings"
-          >
-            <SystemSettingsTab settings={settings} showModal={showModal} />
-          </TabPane>
-          <TabPane
-            tab={
-              <span>
-                <BarChartOutlined />
-                Reports & Analytics
-              </span>
-            }
-            key="reports-analytics"
-          >
-            <List
-              dataSource={[
-                { title: 'Total Users', value: users?.length },
-                { title: 'Total Documents', value: documents?.length },
-                { title: 'Total Templates', value: templates?.length },
-              ]}
-              renderItem={item => (
-                <List.Item>
-                  <List.Item.Meta
-                    title={item.title}
-                    description={item.value?.toString()}
-                  />
-                </List.Item>
-              )}
-            />
-          </TabPane>
-          <TabPane
-            tab={
-              <span>
-                <FileTextOutlined />
-                Document Templates
-              </span>
-            }
-            key="document-templates"
-          >
-            <DocumentTemplatesTab templates={templates} showModal={showModal} />
-          </TabPane>
-          <TabPane
-            tab={
-              <span>
-                <TagsOutlined />
-                Document Tags
-              </span>
-            }
-            key="document-tags"
-          >
-            <DocumentTagsTab tags={tags} showModal={showModal} />
-          </TabPane>
-          <TabPane
-            tab={
-              <span>
-                <BgColorsOutlined />
-                Theme Settings
-              </span>
-            }
-            key="theme-settings"
-          >
-            <ThemeSettingsTab showModal={showModal} handleUpdateTheme={handleUpdateTheme} />
-          </TabPane>
-          <TabPane
-            tab={
-              <span>
-                <GlobalOutlined />
-                Language Management
-              </span>
-            }
-            key="language-management"
-          >
-            <LanguageManagementTab
-              languages={languages}
-              currentLanguage={currentLanguage}
-              changeLanguage={changeLanguage}
-              handleRemoveLanguage={handleRemoveLanguage}
-              handleAddLanguage={handleAddLanguage}
-              t={t}
-            />
-          </TabPane>
-        </Tabs>
-      </Card>
+      <Flex style={{ height: '100%' }}>
+        <div style={{ width: '250px', borderRight: '1px solid #f0f0f0' }}>
+          <LeftAdminMenu selectedKey={activeMenuKey} onSelect={handleMenuChange} />
+        </div>
+        <Flex flex={1} vertical>
+          <Card>
+            <Title level={2}>Admin Panel</Title>
+            <Text>
+              Manage users, settings, and documents for your organization.
+            </Text>
+            {renderContent()}
+          </Card>
+        </Flex>
+      </Flex>
 
       <Modal
         title={`${modalType.charAt(0).toUpperCase() + modalType.slice(1)} Form`}
