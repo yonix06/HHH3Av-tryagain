@@ -140,7 +140,7 @@ export default function HomePage() {
   }
 
   return (
-    <PageLayout layout="full-width">
+    <PageLayout layout="narrow">
       <Title level={2}>Dashboard</Title>
       <Text>
         Welcome to your personalized dashboard. Here's an overview of your

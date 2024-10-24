@@ -84,8 +84,8 @@ export const Topbar: React.FC<Props> = ({ keySelected, items }) => {
 
         <Flex
           flex={1}
-          className="topbar-menu-container mx-4"
-          style={{ overflow: 'hidden' }}
+          className="topbar-menu-container"
+          style={{ overflow: 'hidden', marginLeft: token.margin, marginRight: token.margin }}
         >
           <Menu
             mode="horizontal"
@@ -96,7 +96,6 @@ export const Topbar: React.FC<Props> = ({ keySelected, items }) => {
               border: 'none',
               transition: 'all 0.3s ease',
             }}
-            className="hover:text-blue-500 hover:-translate-y-0.5 transition-all duration-300"
           />
           {overflowItems.length > 0 && (
             <Dropdown overlay={overflowMenu} placement="bottomRight">
@@ -109,10 +108,10 @@ export const Topbar: React.FC<Props> = ({ keySelected, items }) => {
           )}
         </Flex>
 
-        <Flex align="center" gap="large">
+        <Flex align="center">
           {checkRole('ADMIN') && (
-            <Tag color="red" bordered={false}>
-              Admin
+            <Tag color="red" bordered={false} style={{ marginRight: token.marginSM }}>
+              👽 Admin
             </Tag>
           )}
 
@@ -122,7 +121,7 @@ export const Topbar: React.FC<Props> = ({ keySelected, items }) => {
               alt={user.name}
               size="default"
               onClick={() => router.push('/profile')}
-              style={{ cursor: 'pointer' }}
+              style={{ cursor: 'pointer', marginLeft: token.marginSM }}
             >
               {Utility.stringToInitials(user.name)}
             </Avatar>

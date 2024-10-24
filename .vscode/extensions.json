@@ -21,6 +21,9 @@
     "pkief.material-icon-theme",
     "nguyenoss.html-to-css-autocompletion",
     "naumovs.color-highlight",
-    "alfredbirk.tailwind-documentation"
+    "alfredbirk.tailwind-documentation",
+    "jeronimoekerdt.color-picker-universal",
+    "firsttris.vscode-jest-runner",
+    "kavod-io.vscode-jest-test-adapter"
   ]
 }

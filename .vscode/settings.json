@@ -26,7 +26,7 @@
   "gitlens.hovers.enabled": false,
   "gitlens.currentLine.enabled": false,
   "gitlens.hovers.currentLine.over": "line",
-  "keyboard.layout": "French",
+  "keyboard.layout": "0000040C",
   "conventionalCommits.autoCommit": true,
   "git.branchProtection": ["main"],
   "git.branchRandomName.dictionary": ["colors", "animals"],
@@ -49,8 +49,5 @@
     },
     "editor.minimap.enabled": false
   },
-  "i18n-ally.localesPaths": [
-    "public/locales",
-    "src/i18n"
-  ]
+  "i18n-ally.localesPaths": ["public/locales", "src/i18n"]
 }

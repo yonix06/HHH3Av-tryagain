@@ -37,12 +37,12 @@ const getLayoutBreakpoints = (layout: LayoutType) => {
     },
   }
 
-  return mapping[layout] ?? mapping['full-width']
+  return mapping[layout] ?? mapping['narrow']
 }
 
 export const PageLayout: React.FC<Props> = ({
   children,
-  layout = 'full-width',
+  layout = 'narrow',
   isCentered = false,
   isScrollable = true,
   ...props

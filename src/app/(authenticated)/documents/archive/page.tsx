@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Typography, Input, Table, Space, Button, Modal } from 'antd'
+import { Typography, Input, Table, Space, Button, Modal, DatePicker, Select } from 'antd'
 import {
   SearchOutlined,
   HistoryOutlined,
@@ -24,6 +24,17 @@ export default function ArchivePage() {
 
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedVersion, setSelectedVersion] = useState<any>(null)
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false)
+  const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null] | null>(null)
+  const [selectedAuthor, setSelectedAuthor] = useState<string | null>(null)
+  const [contentSearch, setContentSearch] = useState('')
+
+  // Dummy data for authors, replace with actual data fetching
+  const authors = [
+    { value: 'author1', label: 'Author 1' },
+    { value: 'author2', label: 'Author 2' },
+    // Add more authors as needed
+  ]
 
   const {
     data: documents,
@@ -65,7 +76,7 @@ export default function ArchivePage() {
 
   const columns = [
     {
-      title: 'Document Name',
+      title: 'Nom',
       dataIndex: 'name',
       key: 'name',
     },
@@ -75,10 +86,10 @@ export default function ArchivePage() {
       key: 'description',
     },
     {
-      title: 'Last Updated',
+      title: 'Dernière modification',
       dataIndex: 'updatedAt',
       key: 'updatedAt',
-      render: (date: string) => dayjs(date).format('YYYY-MM-DD HH:mm'),
+      render: (date: string) => dayjs(date).format('DD-MM-YYYY à HH:mm'),
     },
     {
       title: 'Actions',
@@ -97,28 +108,52 @@ export default function ArchivePage() {
   return (
     <PageLayout layout="full-width">
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px' }}>
-        <Title level={2}>Document Archive</Title>
-        <Text>View and manage all versions of archived documents</Text>
+        <Title level={2}>Recherche</Title>
+        <Text>Consultez et gérez toutes les versions des documents archivés</Text><br />
+        <Text>Pour effectuer une recherche, utilisez la barre ci-dessous et les critères avancés si nécessaire.</Text>
 
-        <Space
-          direction="vertical"
-          size="large"
-          style={{ width: '100%', marginTop: 24 }}
-        >
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', marginTop: 24 }}>
           <Input
-            placeholder="Search documents"
+            placeholder="Rechercher des documents"
             prefix={<SearchOutlined />}
             onChange={e => handleSearch(e.target.value)}
             style={{ width: 300 }}
           />
+          <Button 
+            onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+            style={{ marginTop: 16 }}
+          >
+            {showAdvancedSearch ? 'Masquer' : 'Afficher'} la recherche avancée
+          </Button>
+          {showAdvancedSearch && (
+            <div style={{ marginTop: 16, width: '100%', maxWidth: 300 }}>
+              <DatePicker.RangePicker 
+                style={{ marginBottom: 8, width: '100%' }}
+                onChange={(dates) => setDateRange(dates)}
+                value={dateRange}
+              />
+              <Select
+                style={{ width: '100%', marginBottom: 8 }}
+                placeholder="Sélectionner un auteur"
+                options={authors}
+                onChange={(value) => setSelectedAuthor(value)}
+                value={selectedAuthor}
+              />
+              <Input
+                placeholder="Rechercher dans le contenu"
+                style={{ width: '100%' }}
+              />
+            </div>
+          )}
 
           <Table
             dataSource={filteredDocuments}
             columns={columns}
             rowKey="id"
             loading={isLoading}
+            style={{ marginTop: 24, width: '100%' }}
           />
-        </Space>
+        </div>
 
         <Modal
           title="Document Versions"

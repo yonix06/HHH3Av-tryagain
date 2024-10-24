@@ -2,39 +2,35 @@
 
 import {
   Typography,
-  Tabs,
   Card,
-  List,
-  Button,
   Modal,
   Form,
   Input,
   Select,
-  Space,
   ColorPicker,
-  Tag,
+  Button,
+  List,
+  Flex,
 } from 'antd'
-import {
-  UserOutlined,
-  SettingOutlined,
-  BarChartOutlined,
-  FileTextOutlined,
-  TagsOutlined,
-  BgColorsOutlined,
-  GlobalOutlined,
-} from '@ant-design/icons'
+
 import { useState, useEffect } from 'react'
 const { Title, Text } = Typography
-const { TabPane } = Tabs
 import { useUserContext } from '@/core/context'
 import { useRouter } from 'next/navigation'
 import { useSnackbar } from 'notistack'
-import dayjs from 'dayjs'
 import { Api } from '@/core/trpc'
 import { PageLayout } from '@/designSystem'
 import { dummyTags } from '@/utils/dummyData'
 import useLocalization from '@/hooks/useLocalization'
 import { getLanguages } from '@/i18n/config'
+import { OverviewTab } from './components/OverviewTab'
+import { SystemSettingsTab } from './components/SystemSettingsTab'
+import { DocumentTemplatesTab } from './components/DocumentTemplatesTab'
+import { DocumentTagsTab } from './components/DocumentTagsTab'
+import { ThemeSettingsTab } from './components/ThemeSettingsTab'
+import { LanguageManagementTab } from './components/LanguageManagementTab'
+import { LeftAdminMenu } from './components/LeftAdminMenu'
+import { ReportsAnalyticsTab } from './components/ReportsAnalyticsTab'
 
 export default function AdminPanelPage() {
   const router = useRouter()
@@ -43,6 +39,7 @@ export default function AdminPanelPage() {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [modalType, setModalType] = useState('')
   const { t, changeLanguage, currentLanguage } = useLocalization()
+  const [activeMenuKey, setActiveMenuKey] = useState('overview')
 
   const { data: users, refetch: refetchUsers } = Api.user.findMany.useQuery({})
   const { data: userOrganizations, refetch: refetchUserOrganizations } = Api.organizationRole.findMany.useQuery({
@@ -59,7 +56,7 @@ export default function AdminPanelPage() {
     where: organization?.id ? { organizationId: organization.id } : {},
   })
   const tags = dummyTags
-  const [languages, setLanguages] = useState(getLanguages())
+  const [languages, setLanguages] = useState<string[]>(getLanguages())
 
   const { mutateAsync: updateUser } = Api.user.update.useMutation()
   const { mutateAsync: updateOrganization } =
@@ -173,30 +170,20 @@ export default function AdminPanelPage() {
   }
 
   const handleAddLanguage = (language: string) => {
-    try {
-      if (languages && !languages.includes(language)) {
-        setLanguages([...languages, language])
-        enqueueSnackbar(`Language ${language} added successfully`, { variant: 'success' })
-      } else {
-        enqueueSnackbar(`Language ${language} already exists`, { variant: 'warning' })
-      }
-    } catch (error) {
-      console.error('Error adding language:', error)
-      enqueueSnackbar('Failed to add language', { variant: 'error' })
+    if (languages && !languages.includes(language)) {
+      setLanguages([...languages, language])
+      enqueueSnackbar(`Language ${language} added successfully`, { variant: 'success' })
+    } else {
+      enqueueSnackbar(`Language ${language} already exists`, { variant: 'warning' })
     }
   }
 
   const handleRemoveLanguage = (language: string) => {
-    try {
-      if (language === 'en') {
-        enqueueSnackbar('Cannot remove default language (English)', { variant: 'error' })
-      } else if (languages) {
-        setLanguages(languages.filter(lang => lang !== language))
-        enqueueSnackbar(`Language ${language} removed successfully`, { variant: 'success' })
-      }
-    } catch (error) {
-      console.error('Error removing language:', error)
-      enqueueSnackbar('Failed to remove language', { variant: 'error' })
+    if (language === 'en') {
+      enqueueSnackbar('Cannot remove default language (English)', { variant: 'error' })
+    } else if (languages) {
+      setLanguages(languages.filter(lang => lang !== language))
+      enqueueSnackbar(`Language ${language} removed successfully`, { variant: 'success' })
     }
   }
 
@@ -205,197 +192,79 @@ export default function AdminPanelPage() {
     setIsModalVisible(true)
   }
 
+  const handleMenuChange = (key: string) => {
+    setActiveMenuKey(key)
+  }
+
+  const renderContent = () => {
+    switch (activeMenuKey) {
+      case 'overview':
+        return <OverviewTab handleShortcutClick={handleMenuChange} />;
+      case 'user-profiles':
+        return (
+          <List
+            dataSource={users}
+            renderItem={item => (
+              <List.Item
+                actions={[
+                  <Button key="edit" onClick={() => showModal('user')}>
+                    Edit
+                  </Button>,
+                ]}
+              >
+                <List.Item.Meta 
+                  title={item.name} 
+                  description={
+                    <>
+                      <div>{item.email}</div>
+                      <div>Organization: N/A</div>
+                    </>
+                  } 
+                />
+                <div>Role: {item.globalRole}</div>
+              </List.Item>
+            )}
+          />
+        );
+      case 'system-settings':
+        return <SystemSettingsTab settings={settings} showModal={showModal} />;
+      case 'reports-analytics':
+        return <ReportsAnalyticsTab users={users} documents={documents} templates={templates} />;
+      case 'document-templates':
+        return <DocumentTemplatesTab templates={templates} showModal={showModal} />;
+      case 'document-tags':
+        return <DocumentTagsTab tags={tags} showModal={showModal} />;
+      case 'theme-settings':
+        return <ThemeSettingsTab showModal={showModal} handleUpdateTheme={handleUpdateTheme} />;
+      case 'language-management':
+        return (
+          <LanguageManagementTab
+            languages={languages}
+            currentLanguage={currentLanguage}
+            changeLanguage={changeLanguage}
+            handleRemoveLanguage={handleRemoveLanguage}
+            handleAddLanguage={handleAddLanguage}
+            t={t}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
-    <PageLayout layout="full-width">
-      <Card>
-        <Title level={2}>Admin Panel</Title>
-        <Text>
-          Manage users, settings, and documents for your organization.
-        </Text>
-        <Tabs defaultActiveKey="1" style={{ marginTop: 16 }}>
-          <TabPane
-            tab={
-              <span>
-                <UserOutlined />
-                User Profiles
-              </span>
-            }
-            key="1"
-          >
-            <List
-              dataSource={users}
-              renderItem={item => (
-                <List.Item
-                  actions={[
-                    <Button key="edit" onClick={() => showModal('user')}>
-                      Edit
-                    </Button>,
-                  ]}
-                >
-                  <List.Item.Meta 
-                    title={item.name} 
-                    description={
-                      <>
-                        <div>{item.email}</div>
-                        <div>Organization: N/A</div>
-                      </>
-                    } 
-                  />
-                  <div>Role: {item.globalRole}</div>
-                </List.Item>
-              )}
-            />
-          </TabPane>
-          <TabPane
-            tab={
-              <span>
-                <SettingOutlined />
-                System Settings
-              </span>
-            }
-            key="2"
-          >
-            <List
-              dataSource={[settings]}
-              renderItem={item => (
-                <List.Item
-                  actions={[
-                    <Button key="edit" onClick={() => showModal('settings')}>
-                      Edit
-                    </Button>,
-                  ]}
-                >
-                  <List.Item.Meta
-                    title="Organization Settings"
-                    description={`Name: ${item?.name}`}
-                  />
-                </List.Item>
-              )}
-            />
-          </TabPane>
-          <TabPane
-            tab={
-              <span>
-                <BarChartOutlined />
-                Reports & Analytics
-              </span>
-            }
-            key="3"
-          >
-            <List
-              dataSource={[
-                { title: 'Total Users', value: users?.length },
-                { title: 'Total Documents', value: documents?.length },
-                { title: 'Total Templates', value: templates?.length },
-              ]}
-              renderItem={item => (
-                <List.Item>
-                  <List.Item.Meta
-                    title={item.title}
-                    description={item.value?.toString()}
-                  />
-                </List.Item>
-              )}
-            />
-          </TabPane>
-          <TabPane
-            tab={
-              <span>
-                <FileTextOutlined />
-                Document Templates
-              </span>
-            }
-            key="4"
-          >
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Button onClick={() => showModal('template')}>
-                Create New Template
-              </Button>
-              <List
-                dataSource={templates}
-                renderItem={item => (
-                  <List.Item>
-                    <List.Item.Meta
-                      title={item.name}
-                      description={item.description}
-                    />
-                    <div>
-                      Created: {dayjs(item.createdAt).format('YYYY-MM-DD')}
-                    </div>
-                  </List.Item>
-                )}
-              />
-            </Space>
-          </TabPane>
-          <TabPane
-            tab={
-              <span>
-                <TagsOutlined />
-                Document Tags
-              </span>
-            }
-            key="5"
-          >
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Button onClick={() => showModal('tag')}>Create New Tag</Button>
-              <List
-                dataSource={tags}
-                renderItem={item => (
-                  <List.Item>
-                    <Tag color={item.color}>{item.name}</Tag>
-                  </List.Item>
-                )}
-              />
-            </Space>
-          </TabPane>
-          <TabPane
-            tab={
-              <span>
-                <BgColorsOutlined />
-                Theme Settings
-              </span>
-            }
-            key="6"
-          >
-            <Button onClick={() => showModal('theme')}>
-              Edit Theme Settings
-            </Button>
-          </TabPane>
-          <TabPane
-            tab={
-              <span>
-                <GlobalOutlined />
-                Language Management
-              </span>
-            }
-            key="7"
-          >
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Button onClick={() => showModal('language')}>Add New Language</Button>
-              <List
-                dataSource={languages}
-                renderItem={item => (
-                  <List.Item
-                    actions={[
-                      <Button key="edit" onClick={() => changeLanguage(item)}>
-                        Set as Current
-                      </Button>,
-                      <Button key="delete" danger onClick={() => handleRemoveLanguage(item)} disabled={item === 'en'}>
-                        Remove
-                      </Button>,
-                    ]}
-                  >
-                    <List.Item.Meta
-                      title={item.toUpperCase()}
-                      description={item === currentLanguage ? 'Current Language' : ''}
-                    />
-                  </List.Item>
-                )}
-              />
-            </Space>
-          </TabPane>
-        </Tabs>
-      </Card>
+    <PageLayout layout="narrow">
+      <Flex style={{ height: '100%' }}>
+        <div style={{ width: '200px' }}>
+          <LeftAdminMenu selectedKey={activeMenuKey} onSelect={handleMenuChange} />
+        </div>
+        <Flex flex={1} vertical>
+          <Title level={2}>🐧 Admin Panel</Title>
+            <Card>
+            {renderContent()}
+          </Card>
+        </Flex>
+      </Flex>
 
       <Modal
         title={`${modalType.charAt(0).toUpperCase() + modalType.slice(1)} Form`}
@@ -499,18 +368,6 @@ export default function AdminPanelPage() {
             <Form.Item>
               <Button type="primary" htmlType="submit">
                 Update Theme
-              </Button>
-            </Form.Item>
-          </Form>
-        )}
-        {modalType === 'language' && (
-          <Form onFinish={(values) => handleAddLanguage(values.language)}>
-            <Form.Item name="language" label="Language Code">
-              <Input />
-            </Form.Item>
-            <Form.Item>
-              <Button type="primary" htmlType="submit">
-                Add Language
               </Button>
             </Form.Item>
           </Form>
