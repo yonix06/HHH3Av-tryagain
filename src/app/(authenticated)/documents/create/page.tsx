@@ -23,19 +23,31 @@ export default function CreateDocumentPage() {
     where: organization?.id ? { organizationId: organization.id } : {},
   })
 
-  const handleCreateDocument = async (values: Prisma.DocumentCreateArgs['data']) => {
+  const handleCreateDocument = async (values) => {
     try {
       const newDocument = await createDocument({
         data: {
           ...values,
-          user: user?.id ? { connect: { id: user.id } } : undefined,
+          user: { connect: { id: user?.id } },
           organization: organization?.id ? { connect: { id: organization.id } } : undefined,
-        },
+        }
       })
       enqueueSnackbar('Document created successfully', { variant: 'success' })
       router.push(`/documents/${newDocument.id}/edit`)
     } catch (error) {
-      enqueueSnackbar('Failed to create document', { variant: 'error' })
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        console.error('Prisma error:', error.message, error.code)
+        enqueueSnackbar(`Failed to create document: ${error.message}`, { variant: 'error' })
+      } else if (error instanceof Prisma.PrismaClientValidationError) {
+        console.error('Prisma validation error:', error.message)
+        enqueueSnackbar(`Validation error: ${error.message}`, { variant: 'error' })
+      } else if (error instanceof Prisma.PrismaClientInitializationError) {
+        console.error('Prisma initialization error:', error.message)
+        enqueueSnackbar('Database connection error', { variant: 'error' })
+      } else {
+        console.error('Unknown error:', error)
+        enqueueSnackbar('An unexpected error occurred', { variant: 'error' })
+      }
     }
   }
 
