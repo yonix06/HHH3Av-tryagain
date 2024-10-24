@@ -12,16 +12,7 @@ import {
   List,
   Flex,
 } from 'antd'
-import {
-  UserOutlined,
-  SettingOutlined,
-  BarChartOutlined,
-  FileTextOutlined,
-  TagsOutlined,
-  BgColorsOutlined,
-  GlobalOutlined,
-  AppstoreOutlined,
-} from '@ant-design/icons'
+
 import { useState, useEffect } from 'react'
 const { Title, Text } = Typography
 import { useUserContext } from '@/core/context'
@@ -39,6 +30,7 @@ import { DocumentTagsTab } from './components/DocumentTagsTab'
 import { ThemeSettingsTab } from './components/ThemeSettingsTab'
 import { LanguageManagementTab } from './components/LanguageManagementTab'
 import { LeftAdminMenu } from './components/LeftAdminMenu'
+import { ReportsAnalyticsTab } from './components/ReportsAnalyticsTab'
 
 export default function AdminPanelPage() {
   const router = useRouter()
@@ -237,23 +229,7 @@ export default function AdminPanelPage() {
       case 'system-settings':
         return <SystemSettingsTab settings={settings} showModal={showModal} />;
       case 'reports-analytics':
-        return (
-          <List
-            dataSource={[
-              { title: 'Total Users', value: users?.length },
-              { title: 'Total Documents', value: documents?.length },
-              { title: 'Total Templates', value: templates?.length },
-            ]}
-            renderItem={item => (
-              <List.Item>
-                <List.Item.Meta
-                  title={item.title}
-                  description={item.value?.toString()}
-                />
-              </List.Item>
-            )}
-          />
-        );
+        return <ReportsAnalyticsTab users={users} documents={documents} templates={templates} />;
       case 'document-templates':
         return <DocumentTemplatesTab templates={templates} showModal={showModal} />;
       case 'document-tags':
@@ -277,17 +253,14 @@ export default function AdminPanelPage() {
   };
 
   return (
-    <PageLayout layout="full-width">
+    <PageLayout layout="narrow">
       <Flex style={{ height: '100%' }}>
-        <div style={{ width: '250px', borderRight: '1px solid #f0f0f0' }}>
+        <div style={{ width: '200px' }}>
           <LeftAdminMenu selectedKey={activeMenuKey} onSelect={handleMenuChange} />
         </div>
         <Flex flex={1} vertical>
           <Card>
-            <Title level={2}>Admin Panel</Title>
-            <Text>
-              Manage users, settings, and documents for your organization.
-            </Text>
+            <Title level={2}>🐧 Admin Panel</Title>
             {renderContent()}
           </Card>
         </Flex>
