@@ -3,6 +3,7 @@ import type { unsetMarker, AnyRouter, AnyRootConfig, CreateRouterInner, Procedur
 import type { PrismaClient } from "@prisma/client";
 import createTagRouter from "./Tag.router";
 import createEmailListRouter from "./EmailList.router";
+import createEmailRouter from "./Email.router";
 import createDocumentTemplateRouter from "./DocumentTemplate.router";
 import createDocumentRouter from "./Document.router";
 import createStatusRouter from "./Status.router";
@@ -20,6 +21,7 @@ import createAccountRouter from "./Account.router";
 import createSessionRouter from "./Session.router";
 import { ClientType as TagClientType } from "./Tag.router";
 import { ClientType as EmailListClientType } from "./EmailList.router";
+import { ClientType as EmailClientType } from "./Email.router";
 import { ClientType as DocumentTemplateClientType } from "./DocumentTemplate.router";
 import { ClientType as DocumentClientType } from "./Document.router";
 import { ClientType as StatusClientType } from "./Status.router";
@@ -61,6 +63,7 @@ export function createRouter<Config extends BaseConfig>(router: RouterFactory<Co
     return router({
         tag: createTagRouter(router, procedure),
         emailList: createEmailListRouter(router, procedure),
+        email: createEmailRouter(router, procedure),
         documentTemplate: createDocumentTemplateRouter(router, procedure),
         document: createDocumentRouter(router, procedure),
         status: createStatusRouter(router, procedure),
@@ -83,6 +86,7 @@ export function createRouter<Config extends BaseConfig>(router: RouterFactory<Co
 export interface ClientType<AppRouter extends AnyRouter> {
     tag: TagClientType<AppRouter>;
     emailList: EmailListClientType<AppRouter>;
+    email: EmailClientType<AppRouter>;
     documentTemplate: DocumentTemplateClientType<AppRouter>;
     document: DocumentClientType<AppRouter>;
     status: StatusClientType<AppRouter>;

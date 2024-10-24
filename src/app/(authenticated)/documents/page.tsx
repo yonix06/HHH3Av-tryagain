@@ -34,7 +34,7 @@ type Document = Prisma.DocumentGetPayload<{
       include: { tag: true }
     }
     documentVersions: {
-      include: { changes: true; url: true }
+      include: { changes: true }
     }
     status: true
   }
@@ -54,7 +54,7 @@ export default function DocumentManagementPage() {
     where: { organizationId: organization?.id },
     include: { 
       documentTags: { include: { tag: true } }, 
-      documentVersions: { include: { changes: true, url: true } }, 
+      documentVersions: { include: { changes: true } }, 
       status: true
     },
   })
@@ -97,7 +97,7 @@ export default function DocumentManagementPage() {
       render: (versions: Document['documentVersions']) => {
         const latestVersion = versions[versions.length - 1];
         return latestVersion ? (
-          <a href={latestVersion.url} target="_blank" rel="noopener noreferrer">
+          <a href="#" onClick={() => enqueueSnackbar('URL functionality not implemented', { variant: 'info' })}>
             View Document
           </a>
         ) : 'N/A';

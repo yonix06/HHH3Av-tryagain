@@ -9,6 +9,7 @@ import {
   CheckCircleOutlined,
   MessageOutlined,
 } from '@ant-design/icons'
+import { Prisma } from '@prisma/client'
 import {
   Badge,
   Calendar,
@@ -17,15 +18,14 @@ import {
   Col,
   List,
   Row,
-  theme,
-  Typography,
   Spin,
+  Typography,
+  theme,
 } from 'antd'
 import dayjs, { Dayjs } from 'dayjs'
 import { useParams, useRouter } from 'next/navigation'
 import { useSnackbar } from 'notistack'
 import { useEffect } from 'react'
-import { Prisma } from '@prisma/client'
 const { Title, Text } = Typography
 const { useToken } = theme
 
@@ -37,14 +37,24 @@ export default function HomePage() {
   const { token } = useToken()
   const apiUtils = Api.useUtils()
 
-  const { data: documents, isLoading: isLoadingDocuments, error: documentsError } = Api.document.findMany.useQuery({
+  const {
+    data: documents,
+    isLoading: isLoadingDocuments,
+    error: documentsError,
+  } = Api.document.findMany.useQuery({
     where: { organizationId: organization?.id },
-    include: { documentVersions: true, documentTags: { include: { tag: true } }, status: true },
+    include: {
+      documentVersions: true,
+      documentTags: { include: { tag: true } },
+      status: true,
+    },
   })
 
-
-
-  const { data: validations, isLoading: isLoadingValidations, error: validationsError } = Api.validation.findMany.useQuery({})
+  const {
+    data: validations,
+    isLoading: isLoadingValidations,
+    error: validationsError,
+  } = Api.validation.findMany.useQuery({})
 
   useEffect(() => {
     if (documentsError) {
@@ -54,6 +64,14 @@ export default function HomePage() {
       enqueueSnackbar('Error fetching validations', { variant: 'error' })
     }
   }, [documentsError, validationsError, enqueueSnackbar])
+
+  useEffect(() => {
+    if (documents?.some(d => !d.status)) {
+      enqueueSnackbar('Some documents have invalid status', {
+        variant: 'warning',
+      })
+    }
+  }, [documents, enqueueSnackbar])
 
   type Document = Prisma.DocumentGetPayload<{
     include: {
@@ -168,8 +186,10 @@ export default function HomePage() {
           >
             <Text style={{ color: token.colorTextBase }}>
               Total Documents:{' '}
-              {documents?.reduce((acc, doc) => acc + doc.documentVersions.length, 0) ||
-                0}
+              {documents?.reduce(
+                (acc, doc) => acc + doc.documentVersions.length,
+                0,
+              ) || 0}
             </Text>
           </Card>
         </Col>
@@ -189,8 +209,7 @@ export default function HomePage() {
           >
             <Text style={{ color: token.colorTextBase }}>
               Pending:{' '}
-              {documents
-                ?.filter((d: Document) => d.status.name === 'DRAFT')
+              {documents?.filter((d: Document) => d.status?.name === 'DRAFT')
                 .length || 0}
             </Text>
           </Card>
@@ -276,7 +295,7 @@ export default function HomePage() {
                   style={{ cursor: 'pointer' }}
                 >
                   <Text style={{ color: token.colorTextBase }}>
-                    {item.status.name}: {item.name} (v{item.versionNumber})
+                    {item.status?.name}: {item.name} (v{item.versionNumber})
                   </Text>
                 </List.Item>
               )}

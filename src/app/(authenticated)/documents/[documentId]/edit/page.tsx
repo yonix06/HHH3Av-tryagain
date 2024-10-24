@@ -72,8 +72,7 @@ export default function DocumentEditorPage() {
     try {
       const file = new File([content], 'document.html', { type: 'text/html' });
       const newVersionNumber = (document?.documentVersions.length || 0) + 1;
-      const newUrl = `/documents/${params.documentId}/versions/${newVersionNumber}`;
-      const uploadResult = await upload({ file, path: newUrl });
+      const uploadResult = await upload({ file });
       await updateDocumentMutation.mutateAsync({
         where: { id: params.documentId },
         data: { name, description },

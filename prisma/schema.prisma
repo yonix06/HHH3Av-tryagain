@@ -37,8 +37,20 @@ model EmailList {
   organizationId String
   organization   Organization?   @relation(fields: [organizationId], references: [id], name: "organization")
   emailListUsers EmailListUser[] @relation("emailList")
+  emails         Email[]         @relation("emailList")
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @default(now()) @updatedAt()
+}
+
+/// @@allow('all', true)
+model Email {
+  id          String    @id() @default(uuid())
+  subject     String
+  content     String
+  emailListId String
+  emailList   EmailList @relation(fields: [emailListId], references: [id], name: "emailList")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt()
 }
 
 /// @@allow('all', true)
@@ -58,7 +70,6 @@ model Document {
   id               String            @id() @default(uuid())
   name             String
   description      String?
-  url              String?
   userId           String
   user             User?             @relation(fields: [userId], references: [id], name: "user")
   organizationId   String
@@ -121,6 +132,7 @@ model Validation {
   id                String           @id() @default(uuid())
   status            String
   comment           String?
+  url               String?
   userId            String
   user              User?            @relation(fields: [userId], references: [id], name: "user")
   documentVersionId String
